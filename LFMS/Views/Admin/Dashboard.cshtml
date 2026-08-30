@@ -1,0 +1,78 @@
+@model LFMS.ViewModels.AdminDashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">ADMIN</p>
+        <h1>Dashboard</h1>
+        <a class="muted dashboard-overview-link" asp-controller="Admin" asp-action="Dashboard">A quick overview of the Lost &amp; Found system.</a>
+    </div>
+    <a class="btn btn-accent" asp-controller="Notifications" asp-action="Index">Notifications</a>
+</div>
+
+<div class="stats-grid admin-stats-grid">
+    <div class="stat"><span>Total users</span><strong>@Model.Users</strong></div>
+    <div class="stat"><span>Active posts</span><strong>@Model.Posts</strong></div>
+    <div class="stat"><span>Lost</span><strong>@Model.Lost</strong></div>
+    <div class="stat"><span>Found</span><strong>@Model.Found</strong></div>
+    <div class="stat"><span>Collected</span><strong>@Model.Collected</strong></div>
+    <div class="stat"><span>Comments</span><strong>@Model.Comments</strong></div>
+    <a class="stat stat-link-card collection-request-card" asp-action="CollectionHistory" aria-label="Open collection history">
+        <span>Collection requests</span><strong>@Model.CollectionRequests</strong>
+    </a>
+    <a class="stat stat-link-card" asp-controller="Notifications" asp-action="Index" aria-label="Open notifications">
+        <span>Notifications</span><strong>@Model.UnreadNotifications</strong>
+    </a>
+</div>
+
+<div class="dashboard-chart-card">
+    <div class="chart-card-heading">
+        <div>
+            <p class="eyebrow">LAST 7 DAYS</p>
+            <h2>Post activity</h2>
+        </div>
+        <span class="muted small">Lost vs Found posts</span>
+    </div>
+    <div class="chart-wrap">
+        <canvas id="postActivityChart"></canvas>
+    </div>
+</div>
+
+<div class="admin-links">
+    <a asp-action="Posts">Manage Posts</a>
+    <a asp-action="Comments">Manage Comments</a>
+    <a asp-action="Categories">Manage Categories</a>
+    <a asp-action="Users">Manage Users</a>
+    <a asp-action="Settings">Admin Settings</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartLabels = @Html.Raw(JsonSerializer.Serialize(Model.ChartLabels));
+const chartLost = @Html.Raw(JsonSerializer.Serialize(Model.ChartLost));
+const chartFound = @Html.Raw(JsonSerializer.Serialize(Model.ChartFound));
+
+new Chart(document.getElementById('postActivityChart'), {
+    type: 'bar',
+    data: {
+        labels: chartLabels,
+        datasets: [
+            { label: 'Lost', data: chartLost, borderWidth: 1 },
+            { label: 'Found', data: chartFound, borderWidth: 1 }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+    }
+});
+</script>

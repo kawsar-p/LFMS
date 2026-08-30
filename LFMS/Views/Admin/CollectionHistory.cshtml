@@ -1,0 +1,95 @@
+@model IEnumerable<LFMS.Models.CollectionConfirmation>
+@{
+    ViewData["Title"] = "Collection History";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">ADMIN / HISTORY</p>
+        <h1>Collection History</h1>
+        <p class="muted">Every submitted recovery or return confirmation is stored here.</p>
+    </div>
+    <a class="back-link" asp-action="Dashboard">Back to dashboard</a>
+</div>
+
+<div class="history-card simple-table">
+    @if (!Model.Any())
+    {
+        <div class="empty-card">No collection confirmations have been submitted yet.</div>
+    }
+    else
+    {
+        <div class="history-table-wrap">
+            <table class="admin-history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Confirmed by</th>
+                        <th>Verification</th>
+                        <th>Handover</th>
+                        <th>Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ConfirmedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</td>
+                        <td>
+                            <a asp-controller="Posts" asp-action="Details" asp-route-id="@item.PostId"><strong>@item.Post?.Title</strong></a>
+                            <div class="muted small">@item.Post?.ReferenceCode</div>
+                        </td>
+                        <td><span class="status-badge status-collected">@(item.Post?.PostType == "Lost" ? "Lost received" : "Found returned")</span></td>
+                        <td>
+                            <strong>@item.FullName</strong>
+                            <div class="muted small">@item.PhoneNumber</div>
+                        </td>
+                        <td>@item.IdentificationDetails</td>
+                        <td>
+                            <strong>@item.HandoverDate.ToString("dd MMM yyyy")</strong>
+                            <div class="muted small">@item.HandoverDetails</div>
+                        </td>
+                        <td>
+                            <div><strong>@item.Status</strong></div>
+                            @if (!string.IsNullOrWhiteSpace(item.Post?.PrivateVerificationDetails))
+                            {
+                                <div class="muted small"><b>Private verification:</b> @item.Post.PrivateVerificationDetails</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.VerificationReferenceAtSubmission))
+                            {
+                                <div class="muted small"><b>Private reference:</b> @item.VerificationReferenceAtSubmission</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.ClaimantVerificationAnswer))
+                            {
+                                <div class="muted small"><b>Claim answer:</b> @item.ClaimantVerificationAnswer</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.ReviewNotes))
+                            {
+                                <div class="muted small"><b>Notes:</b> @item.ReviewNotes</div>
+                            }
+                            @if (item.Status == "PendingAdminApproval" || item.Status == "OwnerApproved")
+                            {
+                                <div class="detail-actions" style="margin-top:.6rem;">
+                                    <form asp-action="ApproveClaim" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="publish-button">Approve & collect</button>
+                                    </form>
+                                    <form asp-action="RejectClaim" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="text" name="notes" placeholder="Reason (optional)" />
+                                        <button type="submit" class="btn btn-dark">Reject</button>
+                                    </form>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

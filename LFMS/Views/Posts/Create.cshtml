@@ -1,0 +1,207 @@
+@model PostCreateViewModel
+@{
+    ViewData["Title"] = "Create Post";
+}
+
+<div class="create-page compact-create-page">
+    <div class="create-intro">
+        <div>
+            <p class="eyebrow">CREATE POST</p>
+            <h1>Share an item with the community.</h1>
+            <p class="create-subtitle">Add the details people need to help return a lost item or identify something that has been found.</p>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="create-back">Back to feed</a>
+    </div>
+
+    <div class="create-layout compact-create-layout">
+        <aside class="create-side">
+            <div class="side-card">
+                <span class="side-number">01</span>
+                <strong>Choose a post type</strong>
+                <span>Tell the community whether the item was lost or found.</span>
+            </div>
+            <div class="side-card">
+                <span class="side-number">02</span>
+                <strong>Add clear details</strong>
+                <span>Use a useful title, location, date and description.</span>
+            </div>
+            <div class="side-card">
+                <span class="side-number">03</span>
+                <strong>Add a photo</strong>
+                <span>A clear image makes an item easier to recognize.</span>
+            </div>
+        </aside>
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="create-card compact-create-card">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="form-error"></div>
+
+            <section class="form-section first-section">
+                <div class="section-label">Post type <span class="required-star">*</span></div>
+                <div class="post-type-grid">
+                    <label class="type-choice">
+                        <input asp-for="PostType" type="radio" value="Lost" checked />
+                        <span><b>Lost</b><small>Something you can no longer find.</small></span>
+                    </label>
+                    <label class="type-choice">
+                        <input asp-for="PostType" type="radio" value="Found" />
+                        <span><b>Found</b><small>Something you found and want to return.</small></span>
+                    </label>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="field-grid two-columns">
+                    <div class="field">
+                        <label asp-for="Title">Item title <span class="required-star">*</span></label>
+                        <input asp-for="Title" placeholder="Example: Black leather wallet" />
+                        <span asp-validation-for="Title" class="form-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="CategoryId">Category <span class="required-star">*</span></label>
+                        <select asp-for="CategoryId">
+                            <option value="">Select category</option>
+                            @foreach (var c in ViewBag.Categories)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="form-error"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="field">
+                    <label asp-for="Description">Description <span class="required-star">*</span></label>
+                    <textarea asp-for="Description" rows="4" placeholder="Describe the item, its appearance and any useful identifying details."></textarea>
+                    <span asp-validation-for="Description" class="form-error"></span>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="field-grid two-columns">
+                    <div class="field">
+                        <label asp-for="Location">Location <span class="required-star">*</span></label>
+                        <input asp-for="Location" placeholder="Where was it lost or found?" />
+                        <span asp-validation-for="Location" class="form-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="LostFoundDate">Date <span class="required-star">*</span></label>
+                        <input asp-for="LostFoundDate" type="date" />
+                        <span asp-validation-for="LostFoundDate" class="form-error"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="field">
+                    <label asp-for="PrivateVerificationDetails">Private verification information</label>
+                    <textarea asp-for="PrivateVerificationDetails" rows="4" maxlength="2000" placeholder="Enter a detail that only the real owner should know. This will NOT be shown publicly. Example: a unique mark, hidden sticker, serial number, or contents."></textarea>
+                    <small class="muted">Keep this private. It will be used by the finder/admin to verify a claim.</small>
+                    <span asp-validation-for="PrivateVerificationDetails" class="form-error"></span>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="field">
+                    <label asp-for="Images">Item images <span class="required-star">*</span></label>
+                    <div class="upload-box">
+                        <input asp-for="Images" id="imageInput" type="file" accept=".jpg,.jpeg,.png,.webp" multiple required />
+                        <strong>Choose an image</strong>
+                        <span>JPG, PNG or WEBP. Up to 8 images, 5 MB each.</span>
+                    </div>
+                    <div id="imagePreview" class="image-preview-grid" aria-live="polite"></div>
+                </div>
+            </section>
+
+            <div class="form-footer">
+                <span>Your post will appear on the public feed.</span>
+                <button type="submit" class="publish-button">Publish Post</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const maxFiles = 8;
+        const maxSize = 5 * 1024 * 1024;
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        let selectedFiles = [];
+
+        function syncFiles() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            imageInput.files = dt.files;
+        }
+
+        function renderPreview() {
+            imagePreview.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const card = document.createElement('div');
+                card.className = 'preview-card upload-preview-card';
+
+                const img = document.createElement('img');
+                img.alt = file.name;
+                img.src = URL.createObjectURL(file);
+
+                const info = document.createElement('div');
+                info.className = 'upload-preview-info';
+
+                const name = document.createElement('span');
+                name.className = 'image-preview-name';
+                name.textContent = file.name;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'remove-preview-button';
+                remove.textContent = 'Remove';
+                remove.onclick = () => {
+                    selectedFiles.splice(index, 1);
+                    syncFiles();
+                    renderPreview();
+                };
+
+                info.append(name, remove);
+                card.append(img, info);
+                imagePreview.appendChild(card);
+            });
+        }
+
+        imageInput?.addEventListener('change', function () {
+            const incoming = Array.from(this.files || []);
+
+            for (const file of incoming) {
+                if (!allowed.includes(file.type)) {
+                    alert(`${file.name}: please choose a JPG, PNG or WEBP image.`);
+                    syncFiles();
+                    renderPreview();
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    alert(`${file.name}: image size must be 5 MB or less.`);
+                    syncFiles();
+                    renderPreview();
+                    return;
+                }
+            }
+
+            const combined = [...selectedFiles, ...incoming];
+
+            if (combined.length > maxFiles) {
+                alert('You can upload up to 8 images.');
+                return;
+            }
+
+            selectedFiles = combined;
+            syncFiles();
+            renderPreview();
+        });
+    </script>
+}

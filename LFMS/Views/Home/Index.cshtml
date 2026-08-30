@@ -1,0 +1,195 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="lfms-home-hero">
+    <div class="lfms-hero-illustration" aria-hidden="true">
+        <img src="~/images/hero-illustration.png" alt="" />
+    </div>
+    <div class="lfms-hero-content">
+        <div class="lfms-kicker">LOST &amp; FOUND COMMUNITY</div>
+        <h1>Find what was lost.<br />Return what was found.</h1>
+        <p>Search by item ID, title, or location.</p>
+        <a class="lfms-create-btn" asp-controller="Posts" asp-action="Create" data-i18n="Create Post">Create Post <span aria-hidden="true">→</span></a>
+    </div>
+
+</section>
+
+<section class="lfms-search-section">
+    <div class="lfms-search-row">
+        <button type="button" class="lfms-category-btn" id="categoryToggle" aria-expanded="false" aria-controls="categoryPanel">
+            <span>≡</span> Categories
+        </button>
+
+        <form class="lfms-main-search" asp-controller="Home" asp-action="Index" method="get">
+            <div class="lfms-search-input">
+                <input id="feedSearchInput"
+                       name="search"
+                       value="@Model.Search"
+                       placeholder="Search item ID, title or location"
+                       autocomplete="off" />
+                <button type="button"
+                        class="lfms-search-x"
+                        id="searchClear"
+                        aria-label="Clear search"
+                        title="Clear search">x</button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Type))
+            {
+                <input type="hidden" name="type" value="@Model.Type" />
+            }
+            @if (Model.CategoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+            }
+
+            <button class="lfms-search-submit" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="lfms-category-panel" id="categoryPanel" hidden>
+        <a asp-action="Index">All</a>
+        <a asp-action="Index" asp-route-type="Lost">Lost</a>
+        <a asp-action="Index" asp-route-type="Found">Found</a>
+        @foreach (var category in Model.Categories)
+        {
+            <a asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a>
+        }
+    </div>
+</section>
+
+<main class="lfms-feed">
+    <div class="lfms-feed-heading">
+        <div>
+            <span class="lfms-kicker">COMMUNITY POSTS</span>
+            <h2>Latest items</h2>
+        </div>
+        <span class="lfms-post-count">@Model.Posts.Count() posts</span>
+    </div>
+
+    @if (!Model.Posts.Any())
+    {
+        <div class="lfms-empty">
+            <h3>No posts found.</h3>
+            <p>Try another item ID, title, or location.</p>
+        </div>
+    }
+
+    @foreach (var post in Model.Posts)
+    {
+        var cardImages = post.Images?.Select(x => x.ImagePath)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .ToList() ?? new List<string>();
+
+        if (cardImages.Count == 0 && !string.IsNullOrWhiteSpace(post.ImagePath))
+        {
+            cardImages.Add(post.ImagePath);
+        }
+
+        <article class="lfms-post">
+            <div class="lfms-post-header">
+                <div class="lfms-user">
+                    <div class="lfms-avatar">
+                        <img src="@(string.IsNullOrWhiteSpace(post.User?.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : post.User.ProfileImagePath)" alt="@(post.User?.FullName ?? "User")" />
+                    </div>
+                    <div>
+                        @if (post.User != null)
+                        {
+                            <a class="lfms-profile-link" asp-controller="Profile" asp-action="Public" asp-route-id="@post.UserId">
+                                <strong>@post.User.FullName</strong>
+                            </a>
+                        }
+                        <span>@post.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</span>
+                    </div>
+                </div>
+
+                <span class="lfms-type @(post.PostType.Equals("Found", StringComparison.OrdinalIgnoreCase) ? "found" : "lost")">
+                    @post.PostType.ToUpperInvariant()
+                </span>
+            </div>
+
+            <div class="lfms-reference">POST ID: <b>@post.ReferenceCode</b></div>
+
+            <a class="lfms-post-title"
+               asp-controller="Posts"
+               asp-action="Details"
+               asp-route-id="@post.Id">
+                @post.Title
+            </a>
+
+            <div class="lfms-meta">
+                @if (post.Category != null)
+                {
+                    <span>@post.Category.Name</span>
+                }
+                <span>@post.Location</span>
+                <span>@post.LostFoundDate.ToString("dd MMM yyyy")</span>
+            </div>
+
+            @if (cardImages.Count > 0)
+            {
+                <a class="lfms-image"
+                   asp-controller="Posts"
+                   asp-action="Details"
+                   asp-route-id="@post.Id">
+                    <img src="@cardImages[0]" alt="@post.Title" loading="lazy" />
+                    @if (cardImages.Count > 1)
+                    {
+                        <span class="lfms-image-more">+@(cardImages.Count - 1) more</span>
+                    }
+                </a>
+            }
+
+            <p class="lfms-description">@post.Description</p>
+
+            <div class="lfms-post-bottom">
+                <div class="lfms-stats">
+                    <span>@post.Likes.Count Likes</span>
+                    <span>@post.Comments.Count Comments</span>
+                </div>
+
+                <a class="lfms-view"
+                   asp-controller="Posts"
+                   asp-action="Details"
+                   asp-route-id="@post.Id">
+                    View post
+                </a>
+            </div>
+        </article>
+    }
+</main>
+
+@section Scripts {
+<script>
+(function () {
+    const toggle = document.getElementById('categoryToggle');
+    const panel = document.getElementById('categoryPanel');
+    const input = document.getElementById('feedSearchInput');
+    const clear = document.getElementById('searchClear');
+
+    toggle?.addEventListener('click', function () {
+        const open = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', String(!open));
+        panel.hidden = open;
+    });
+
+    clear?.addEventListener('click', function () {
+        if (!input) return;
+        const form = input.form;
+        const url = new URL(form?.action || window.location.href, window.location.origin);
+
+        const type = form?.querySelector('input[name="type"]')?.value;
+        const categoryId = form?.querySelector('input[name="categoryId"]')?.value;
+
+        if (type) url.searchParams.set('type', type);
+        if (categoryId) url.searchParams.set('categoryId', categoryId);
+
+        url.searchParams.delete('search');
+        window.location.href = url.toString();
+    });
+})();
+</script>
+}

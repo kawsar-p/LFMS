@@ -1,0 +1,115 @@
+@model LFMS.ViewModels.CollectionConfirmationViewModel
+@{
+    ViewData["Title"] = "Collection Confirmation";
+    var isLost = Model.PostType == "Lost";
+    var heading = isLost ? "Confirm you received your lost item" : "Confirm you received this found item";
+    var intro = isLost
+        ? "Complete this form only after you have actually received your lost item."
+        : "Complete this form only if you are the rightful owner and have actually received this found item.";
+}
+
+<div class="confirmation-page">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">COLLECTION CONFIRMATION</p>
+            <h1>@heading</h1>
+            <p class="muted">@intro</p>
+        </div>
+        <a class="back-link" asp-action="Details" asp-route-id="@Model.PostId">Back to post</a>
+    </div>
+
+    <div class="confirmation-layout">
+        <aside class="confirmation-summary">
+            <span class="eyebrow">ITEM</span>
+            <h2>@Model.Title</h2>
+            <span class="status-badge status-available">@Model.PostType</span>
+            <div class="confirmation-note">
+                <strong>Why is this required?</strong>
+                <p>This confirmation creates a permanent record so the administrator can review when and how the item was recovered or returned.</p>
+            </div>
+        </aside>
+
+        <form asp-action="CollectionConfirmation" method="post" class="settings-card confirmation-form" id="collectionConfirmationForm">
+            @Html.AntiForgeryToken()
+            <input asp-for="PostId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="form-error"></div>
+
+            <div class="confirmation-section">
+                <p class="settings-group-title">Your information</p>
+                <div class="two-columns field-grid">
+                    <div class="field">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" readonly="readonly" />
+                        <span asp-validation-for="FullName" class="form-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="PhoneNumber"></label>
+                        <input asp-for="PhoneNumber" />
+                        <span asp-validation-for="PhoneNumber" class="form-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="confirmation-section">
+                <p class="settings-group-title">Verification details</p>
+                <div class="field">
+                    <label asp-for="ClaimantVerificationAnswer"></label>
+                    <textarea asp-for="ClaimantVerificationAnswer" rows="4" placeholder="Give the private detail that proves you are the rightful owner. Do not guess."></textarea>
+                    <span class="muted small">The post owner/admin will compare this with the private verification information.</span>
+                    <span asp-validation-for="ClaimantVerificationAnswer" class="form-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="IdentificationDetails"></label>
+                    <textarea asp-for="IdentificationDetails" rows="5" placeholder="Example: I identified the item by its color, brand, serial/ID number, unique mark, or another private detail."></textarea>
+                    <span asp-validation-for="IdentificationDetails" class="form-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="HandoverDetails"></label>
+                    <textarea asp-for="HandoverDetails" rows="5" placeholder="Explain when, where, and from whom the item was received or returned."></textarea>
+                    <span asp-validation-for="HandoverDetails" class="form-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="HandoverDate"></label>
+                    <input asp-for="HandoverDate" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="HandoverDate" class="form-error"></span>
+                </div>
+            </div>
+
+            <div class="confirmation-check">
+                <label for="Confirmed">
+                    <input id="Confirmed" name="Confirmed" type="checkbox" value="true" @(Model.Confirmed ? "checked" : "") />
+                    <span>I confirm that I have actually completed the recovery/return described above and that the information I provided is true.</span>
+                </label>
+                <span asp-validation-for="Confirmed" class="form-error"></span>
+            </div>
+
+            <div class="form-footer">
+                <span>This request will be reviewed before the item can be marked collected.</span>
+                <button type="submit" class="publish-button">Submit confirmation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // The checkbox intentionally has no hidden false input. This guarantees that
+        // the checked value binds as true on every ASP.NET Core request.
+        document.getElementById('collectionConfirmationForm')?.addEventListener('submit', function (event) {
+            const checkbox = document.getElementById('Confirmed');
+            if (!checkbox?.checked) {
+                event.preventDefault();
+                const error = document.querySelector('[data-valmsg-for="Confirmed"]');
+                if (error) {
+                    error.textContent = 'You must confirm that the information is true.';
+                    error.classList.add('form-error');
+                }
+                checkbox?.focus();
+            }
+        });
+    </script>
+}

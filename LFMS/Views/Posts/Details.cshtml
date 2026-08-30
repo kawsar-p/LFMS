@@ -1,0 +1,390 @@
+@model Post
+@{
+    ViewData["Title"] = Model.Title;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var likedByCurrentUser = currentUserId != null && Model.Likes.Any(x => x.UserId == currentUserId);
+
+    var galleryImages = Model.Images?
+        .Select(x => x.ImagePath)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .ToList() ?? new List<string>();
+
+    if (galleryImages.Count == 0 && !string.IsNullOrWhiteSpace(Model.ImagePath))
+    {
+        galleryImages.Add(Model.ImagePath);
+    }
+}
+
+<div class="detail-page">
+    @if (TempData["Success"] is string success)
+    {
+        <div class="success-message detail-flash">@success</div>
+    }
+    @if (TempData["Info"] is string info)
+    {
+        <div class="confirmation-note detail-flash">@info</div>
+    }
+
+    <div class="detail-topbar">
+        <a class="back-link" asp-controller="Home" asp-action="Index">Back to feed</a>
+
+        @if (User.Identity?.IsAuthenticated == true && (Model.UserId == currentUserId || User.IsInRole("Admin")))
+        {
+            <a class="detail-edit" asp-action="Edit" asp-route-id="@Model.Id">Edit post</a>
+        }
+    </div>
+
+    <!-- 1. POSTED BY -->
+    <section class="detail-author detail-author-top">
+        <span class="sidebar-label">POSTED BY</span>
+
+        <a class="detail-author-link detail-author-with-avatar"
+           asp-controller="Profile"
+           asp-action="Public"
+           asp-route-id="@Model.UserId">
+            <span class="detail-author-avatar"><img src="@(string.IsNullOrWhiteSpace(Model.User?.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : Model.User.ProfileImagePath)" alt="@Model.User?.FullName" /></span>
+            <strong>@Model.User?.FullName</strong>
+        </a>
+
+        <span class="muted">@Model.User?.Email</span>
+
+        @if (User.Identity?.IsAuthenticated == true && Model.UserId != currentUserId)
+        {
+            <a class="message-author-link"
+               asp-controller="Chat"
+               asp-action="With"
+               asp-route-userId="@Model.UserId">
+                Message
+            </a>
+        }
+    </section>
+
+    <!-- 2. POST -->
+    <article class="detail-main">
+        <div class="detail-media">
+            @if (galleryImages.Count > 0)
+            {
+                <div class="detail-gallery">
+                    @for (var i = 0; i < galleryImages.Count; i++)
+                    {
+                        <button type="button"
+                                class="image-fullview-trigger"
+                                onclick="openImageViewer(@i)"
+                                aria-label="View image @(i + 1) full size">
+                            <img src="@galleryImages[i]"
+                                 alt="@Model.Title image @(i + 1)" />
+                            <span class="image-view-label">View full image</span>
+                        </button>
+                    }
+                </div>
+
+                <div class="gallery-count">
+                    @galleryImages.Count image@(galleryImages.Count == 1 ? "" : "s")
+                </div>
+            }
+            else
+            {
+                <div class="detail-no-image">No image available</div>
+            }
+        </div>
+
+        <div class="detail-content">
+            <div class="detail-meta-row">
+                <div class="detail-meta-left">
+                    <span class="type-label">@Model.PostType.ToUpperInvariant()</span>
+                    <span class="post-reference">ID: @Model.ReferenceCode</span>
+                </div>
+
+                <span class="muted small">
+                    @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")
+                </span>
+            </div>
+
+            @if (Model.Status == "Collected")
+            {
+                <div class="collected-notice">
+                    This item has been marked as collected and is no longer shown on the main feed.
+                </div>
+            }
+
+            <div class="detail-status-row">
+                <span class="status-badge @(Model.Status == "Collected" ? "status-collected" : "status-available")">
+                    Status: @Model.Status
+                </span>
+
+                @if (Model.Status != "Collected")
+                {
+                    if (Model.PostType == "Lost" && User.Identity?.IsAuthenticated == true && Model.UserId == currentUserId)
+                    {
+                        <a asp-action="CollectionConfirmation" asp-route-id="@Model.Id" class="status-action confirmation-action">
+                            Confirm collection / return
+                        </a>
+                    }
+                    else if (Model.PostType == "Found")
+                    {
+                        if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-action="CollectionConfirmation" asp-route-id="@Model.Id" class="status-action confirmation-action claim-action">
+                                Claim this item
+                            </a>
+                        }
+                        else
+                        {
+                            var claimReturnUrl = Url.Action("CollectionConfirmation", "Posts", new { id = Model.Id });
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@claimReturnUrl" class="status-action confirmation-action claim-action">
+                                Claim this item
+                            </a>
+                        }
+                    }
+                }
+                else
+                {
+                    <span class="muted small">Collection confirmation submitted and stored in history.</span>
+                }
+            </div>
+
+            <h1 class="detail-title">@Model.Title</h1>
+
+            <p class="detail-location">
+                @Model.Category?.Name
+                <span>·</span>
+                @Model.Location
+                <span>·</span>
+                @Model.LostFoundDate.ToString("dd MMM yyyy")
+            </p>
+
+            <p class="detail-text">@Model.Description</p>
+
+            @if (User.Identity?.IsAuthenticated == true && (Model.UserId == currentUserId || User.IsInRole("Admin")) && !string.IsNullOrWhiteSpace(Model.PrivateVerificationDetails))
+            {
+                <div class="confirmation-note">
+                    <strong>Private verification information</strong>
+                    <p>@Model.PrivateVerificationDetails</p>
+                    <span class="muted small">Visible only to the post owner and administrators.</span>
+                </div>
+            }
+
+            @if (Model.PostType == "Found" && User.Identity?.IsAuthenticated == true && Model.UserId == currentUserId)
+            {
+                var claims = ViewBag.CollectionClaims as IEnumerable<LFMS.Models.CollectionConfirmation> ?? Enumerable.Empty<LFMS.Models.CollectionConfirmation>();
+                foreach (var claim in claims.Where(c => c.Status == "PendingOwnerApproval"))
+                {
+                    <div class="confirmation-note claim-review-card">
+                        <strong>Claim waiting for your approval</strong>
+                        <p><b>Claimant:</b> @claim.FullName (@claim.PhoneNumber)</p>
+                        <p><b>Identification:</b> @claim.IdentificationDetails</p>
+                        <p><b>Verification answer:</b> @claim.ClaimantVerificationAnswer</p>
+                        <p><b>Handover:</b> @claim.HandoverDetails</p>
+                        <div class="detail-actions">
+                            <form asp-action="ApproveClaimByOwner" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@claim.Id" />
+                                <button type="submit" class="publish-button">Approve claim</button>
+                            </form>
+                            <form asp-action="RejectClaimByOwner" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@claim.Id" />
+                                <input type="text" name="notes" placeholder="Reason (optional)" />
+                                <button type="submit" class="btn btn-dark">Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            }
+
+
+            <div class="detail-actions">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-action="Like" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="postId" value="@Model.Id" />
+
+                        <button type="submit"
+                                class="like-button @(likedByCurrentUser ? "liked" : "")">
+                            @(likedByCurrentUser ? "Liked" : "Like")
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a class="like-button"
+                       asp-controller="Account"
+                       asp-action="Login">
+                        Login to like
+                    </a>
+                }
+
+                <span class="detail-count">@Model.Likes.Count Likes</span>
+                <span class="detail-count">@Model.Comments.Count Comments</span>
+            </div>
+        </div>
+    </article>
+
+    <!-- 3. COMMENTS -->
+    <section class="comments-panel detail-comments-full">
+        <div class="comments-heading">
+            <span class="sidebar-label">COMMENTS</span>
+            <strong>@Model.Comments.Count</strong>
+        </div>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <form asp-action="Comment" method="post" class="comment-form detail-comment-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="postId" value="@Model.Id" />
+
+                <textarea name="content"
+                          maxlength="500"
+                          required
+                          placeholder="Write a comment..."></textarea>
+
+                <button class="publish-button" type="submit">Comment</button>
+            </form>
+        }
+        else
+        {
+            <a class="login-comment"
+               asp-controller="Account"
+               asp-action="Login">
+                Login to comment
+            </a>
+        }
+
+        <div class="comments-list">
+            @foreach (var c in Model.Comments.OrderByDescending(c => c.CreatedAt))
+            {
+                <div class="detail-comment">
+                    <div class="comment-author-row">
+                        <a class="detail-author-link detail-comment-author"
+                           asp-controller="Profile"
+                           asp-action="Public"
+                           asp-route-id="@c.UserId">
+                            <span class="comment-author-avatar"><img src="@(string.IsNullOrWhiteSpace(c.User?.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : c.User.ProfileImagePath)" alt="@c.User?.FullName" /></span>
+                            <strong>@c.User?.FullName</strong>
+                        </a>
+
+                        <span class="muted small">
+                            @c.CreatedAt.ToLocalTime().ToString("dd MMM, h:mm tt")
+                        </span>
+
+                        @if (User.Identity?.IsAuthenticated == true && c.UserId != currentUserId)
+                        {
+                            <a class="message-author-link"
+                               asp-controller="Chat"
+                               asp-action="With"
+                               asp-route-userId="@c.UserId">
+                                Message
+                            </a>
+                        }
+                    </div>
+
+                    <div class="comment-body">@c.Content</div>
+
+                    @if (User.IsInRole("Admin") || c.UserId == currentUserId)
+                    {
+                        <form asp-action="DeleteComment" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <button class="delete-link" type="submit">Delete</button>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+@if (galleryImages.Count > 0)
+{
+    <div id="imageViewer"
+         class="image-viewer"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Full image viewer"
+         aria-hidden="true">
+
+        <div class="image-viewer-backdrop" onclick="closeImageViewer()"></div>
+
+        <div class="image-viewer-content">
+            <button type="button"
+                    class="image-viewer-close"
+                    onclick="closeImageViewer()"
+                    aria-label="Close">
+                Close
+            </button>
+
+            <button type="button"
+                    class="image-viewer-nav image-viewer-prev"
+                    onclick="changeImage(-1)"
+                    aria-label="Previous image">
+                Previous
+            </button>
+
+            <img id="fullPostImage"
+                 src="@galleryImages[0]"
+                 alt="@Model.Title" />
+
+            <button type="button"
+                    class="image-viewer-nav image-viewer-next"
+                    onclick="changeImage(1)"
+                    aria-label="Next image">
+                Next
+            </button>
+
+            <div id="imageViewerCaption" class="image-viewer-caption">
+                @Model.Title
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const galleryImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(galleryImages));
+        let currentImageIndex = 0;
+
+        function openImageViewer(index) {
+            currentImageIndex = index;
+            updateImageViewer();
+
+            const viewer = document.getElementById('imageViewer');
+            viewer.classList.add('is-open');
+            viewer.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('image-viewer-open');
+        }
+
+        function updateImageViewer() {
+            document.getElementById('fullPostImage').src =
+                galleryImages[currentImageIndex];
+
+            document.getElementById('imageViewerCaption').textContent =
+                `@Model.Title - ${currentImageIndex + 1} / ${galleryImages.length}`;
+        }
+
+        function changeImage(direction) {
+            currentImageIndex =
+                (currentImageIndex + direction + galleryImages.length)
+                % galleryImages.length;
+
+            updateImageViewer();
+        }
+
+        function closeImageViewer() {
+            const viewer = document.getElementById('imageViewer');
+
+            viewer.classList.remove('is-open');
+            viewer.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('image-viewer-open');
+        }
+
+        document.addEventListener('keydown', function (event) {
+            const viewer = document.getElementById('imageViewer');
+
+            if (!viewer || !viewer.classList.contains('is-open')) return;
+
+            if (event.key === 'Escape') closeImageViewer();
+            if (event.key === 'ArrowLeft') changeImage(-1);
+            if (event.key === 'ArrowRight') changeImage(1);
+        });
+    </script>
+}

@@ -1,0 +1,32 @@
+@model List<LFMS.Models.ChatMessage>
+@{
+    var other = (LFMS.Models.ApplicationUser)ViewBag.OtherUser;
+    var currentId = (string)ViewBag.CurrentUserId;
+    ViewData["Title"] = "Chat with " + other.FullName;
+}
+<div class="chat-page">
+    <div class="chat-header">
+        <a class="back-link" asp-controller="Profile" asp-action="Public" asp-route-id="@other.Id">Back to profile</a>
+        <div class="chat-person">
+            <div class="chat-avatar"><img src="@(string.IsNullOrWhiteSpace(other.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : other.ProfileImagePath)" alt="@other.FullName" /></div>
+            <div><strong>@other.FullName</strong><span>Private chat</span></div>
+        </div>
+    </div>
+    <div class="chat-card">
+        <div class="chat-messages" id="chatMessages">
+            @if (!Model.Any()) { <div class="chat-empty">Start the conversation.</div> }
+            @foreach (var m in Model) {
+                <div class="chat-bubble-row @(m.SenderId == currentId ? "mine" : "theirs")">
+                    <div class="chat-bubble">@m.Content<span>@m.CreatedAt.ToLocalTime().ToString("h:mm tt")</span></div>
+                </div>
+            }
+        </div>
+        <form asp-action="Send" method="post" class="chat-compose">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="userId" value="@other.Id" />
+            <textarea name="content" maxlength="2000" rows="2" required placeholder="Write a message..."></textarea>
+            <button class="btn btn-accent" type="submit">Send</button>
+        </form>
+    </div>
+</div>
+@section Scripts { <script>const box=document.getElementById('chatMessages'); if(box) box.scrollTop=box.scrollHeight;</script> }

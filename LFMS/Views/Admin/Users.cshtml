@@ -1,0 +1,167 @@
+@model List<LFMS.ViewModels.AdminUserViewModel>
+@{
+    ViewData["Title"] = "Manage Users";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="manage-page">
+    <div class="manage-hero">
+        <div>
+            <p class="eyebrow">ADMIN / USERS</p>
+            <h1>Manage Users</h1>
+            <p class="manage-description">Control accounts, roles, contact details and access status from one place.</p>
+        </div>
+        <a class="manage-back" asp-action="Dashboard">Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null) { <div class="manage-alert success">@TempData["Success"]</div> }
+    @if (TempData["Error"] != null) { <div class="manage-alert error">@TempData["Error"]</div> }
+
+    <div class="manage-toolbar manage-filter-toolbar">
+        <div class="manage-search-wrap">
+            <input id="adminUsersSearch" class="manage-search-input" type="search"
+                   placeholder="Search users by name, email, phone, role or status..." autocomplete="off" />
+            <button type="button" class="manage-search-clear" aria-label="Clear search"
+                    onclick="clearManageSearch('adminUsersSearch')">×</button>
+        </div>
+        <select id="adminUsersRole" class="manage-filter-select" aria-label="Filter by role">
+            <option value="" data-i18n="All roles">All roles</option>
+            <option value="User" data-i18n="User">User</option>
+            <option value="Admin" data-i18n="Admin">Admin</option>
+        </select>
+        <select id="adminUsersStatus" class="manage-filter-select" aria-label="Filter by account status">
+            <option value="" data-i18n="All account statuses">All account statuses</option>
+            <option value="Active" data-i18n="Active">Active</option>
+            <option value="Inactive" data-i18n="Inactive">Inactive</option>
+        </select>
+        <select id="adminUsersEmail" class="manage-filter-select" aria-label="Filter by email confirmation">
+            <option value="" data-i18n="Email confirmation">Email confirmation</option>
+            <option value="confirmed" data-i18n="Confirmed">Confirmed</option>
+            <option value="unconfirmed" data-i18n="Not confirmed">Not confirmed</option>
+        </select>
+        <select id="adminUsersPhone" class="manage-filter-select" aria-label="Filter by phone confirmation">
+            <option value="" data-i18n="Phone confirmation">Phone confirmation</option>
+            <option value="confirmed" data-i18n="Confirmed">Confirmed</option>
+            <option value="unconfirmed" data-i18n="Not confirmed">Not confirmed</option>
+        </select>
+        <button type="button" class="manage-filter-reset" id="adminUsersReset" data-i18n="Clear filters">Clear filters</button>
+        <span id="adminUsersSearchCount" class="manage-search-count"></span>
+    </div>
+
+    <div class="manage-list user-manage-list">
+        @foreach (var u in Model)
+        {
+            <article class="manage-card admin-search-item"
+                     data-search="@($"{u.FullName} {u.Email} {u.PhoneNumber} {u.Role} {(u.IsActive ? "Active" : "Inactive")}")"
+                     data-role="@u.Role"
+                     data-status="@(u.IsActive ? "Active" : "Inactive")"
+                     data-email-confirmed="@(u.EmailConfirmed ? "confirmed" : "unconfirmed")"
+                     data-phone-confirmed="@(u.PhoneNumberConfirmed ? "confirmed" : "unconfirmed")">
+                <div class="manage-card-main">
+                    <div class="manage-avatar">
+                        <img src="@(string.IsNullOrWhiteSpace(u.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : u.ProfileImagePath)" alt="@u.FullName" />
+                    </div>
+                    <div class="manage-card-info">
+                        <div class="manage-title-row">
+                            <h2>@u.FullName</h2>
+                            <span class="role-badge @(u.Role == "Admin" ? "role-admin" : "role-user")">@u.Role</span>
+                            <span class="user-status @(u.IsActive ? "user-active" : "user-inactive")">@(u.IsActive ? "Active" : "Inactive")</span>
+                        </div>
+                        <div class="manage-contact-grid">
+                            <span><b>Email</b> @u.Email</span>
+                            <span><b>Phone</b> @(string.IsNullOrWhiteSpace(u.PhoneNumber) ? "Not added" : u.PhoneNumber)</span>
+                        </div>
+                        <span class="manage-id">Account ID: @u.Id</span>
+                    </div>
+                </div>
+
+                <div class="manage-actions">
+                    <a class="manage-action primary" asp-action="EditUser" asp-route-id="@u.Id">Edit</a>
+
+                    <form asp-action="ToggleUserStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button type="submit" class="manage-action">
+                            @(u.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                    </form>
+
+                    @if (u.Id != currentUserId)
+                    {
+                        <form asp-action="DeleteUser" method="post"
+                              onsubmit="return confirm('Permanently delete @u.FullName and all related data?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button type="submit" class="manage-action danger">Delete</button>
+                        </form>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+</div>
+
+<script>
+(function () {
+    const input = document.getElementById('adminUsersSearch');
+    if (!input) return;
+    const items = [...document.querySelectorAll('.user-manage-list .admin-search-item')];
+    const role = document.getElementById('adminUsersRole');
+    const status = document.getElementById('adminUsersStatus');
+    const email = document.getElementById('adminUsersEmail');
+    const phone = document.getElementById('adminUsersPhone');
+    const reset = document.getElementById('adminUsersReset');
+    const count = document.getElementById('adminUsersSearchCount');
+
+    function matches(value, selected) {
+        return !selected || (value || '').toLowerCase() === selected.toLowerCase();
+    }
+
+    function filter() {
+        const q = input.value.trim().toLowerCase();
+        const selectedRole = role.value;
+        const selectedStatus = status.value;
+        const selectedEmail = email.value;
+        const selectedPhone = phone.value;
+        let visible = 0;
+
+        items.forEach(item => {
+            const searchMatch = !q || (item.dataset.search || '').toLowerCase().includes(q);
+            const roleMatch = matches(item.dataset.role, selectedRole);
+            const statusMatch = matches(item.dataset.status, selectedStatus);
+            const emailMatch = matches(item.dataset.emailConfirmed, selectedEmail);
+            const phoneMatch = matches(item.dataset.phoneConfirmed, selectedPhone);
+            const show = searchMatch && roleMatch && statusMatch && emailMatch && phoneMatch;
+            item.classList.toggle('search-hidden', !show);
+            if (show) visible++;
+        });
+
+        const activeFilters = q || selectedRole || selectedStatus || selectedEmail || selectedPhone;
+        count.textContent = activeFilters ? `${visible} of ${items.length}` : `${items.length} users`;
+    }
+
+    [input, role, status, email, phone].forEach(el => {
+        el.addEventListener(el === input ? 'input' : 'change', filter);
+    });
+
+    reset.addEventListener('click', function () {
+        input.value = '';
+        role.value = '';
+        status.value = '';
+        email.value = '';
+        phone.value = '';
+        filter();
+        input.focus();
+    });
+
+    filter();
+})();
+
+function clearManageSearch(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+}
+</script>

@@ -1,0 +1,592 @@
+/*
+   LFMS Home Hero Illustration
+   The original hero layout/content is preserved. Decorative icon/shapes are
+   replaced by one clean illustration on desktop; it is hidden on mobile.
+*/
+.lfms-home-hero {
+    position: relative !important;
+    display: block !important;
+    min-height: 440px !important;
+    padding: 54px clamp(28px, 6vw, 90px) 78px !important;
+    overflow: hidden !important;
+    isolation: isolate;
+    background: linear-gradient(135deg, #fffdf9 0%, #f7f0e6 58%, #ede1d1 100%) !important;
+}
+
+.lfms-home-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0 !important;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 82% 18%, rgba(217, 119, 87, .12), transparent 29%),
+        radial-gradient(circle at 94% 84%, rgba(112, 107, 100, .10), transparent 32%);
+}
+
+/* New image replaces all old individual icons/shapes. */
+.lfms-hero-illustration {
+    position: absolute !important;
+    z-index: 1 !important;
+    right: 1.5% !important;
+    bottom: -10px !important;
+    width: min(52%, 690px) !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    pointer-events: none !important;
+}
+
+.lfms-hero-illustration img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: right bottom !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+.lfms-home-hero .lfms-hero-content {
+    position: relative !important;
+    z-index: 3 !important;
+    width: min(100%, 680px) !important;
+    max-width: 680px !important;
+}
+
+.lfms-home-hero h1 {
+    max-width: 680px !important;
+    font-size: clamp(44px, 4.4vw, 64px) !important;
+    line-height: 1.02 !important;
+}
+
+.lfms-home-hero .lfms-create-btn {
+    position: absolute !important;
+    right: clamp(28px, 6vw, 90px) !important;
+    bottom: 46px !important;
+    left: auto !important;
+    z-index: 4 !important;
+}
+
+/* Keep the illustration away from the copy on medium/large screens. */
+@media (min-width: 1024px) {
+    .lfms-home-hero .lfms-hero-content {
+        width: min(52%, 680px) !important;
+    }
+}
+
+/* Mobile: intentionally no hero illustration. Keep the original clean mobile hero. */
+@media (max-width: 1023px) {
+    .lfms-hero-illustration {
+        display: none !important;
+    }
+
+    .lfms-home-hero {
+        min-height: auto !important;
+        padding: 64px 22px 42px !important;
+    }
+
+    .lfms-home-hero .lfms-hero-content {
+        width: min(100%, 680px) !important;
+        max-width: 680px !important;
+    }
+
+    .lfms-home-hero h1 {
+        font-size: clamp(38px, 9vw, 54px) !important;
+        line-height: 1.04 !important;
+    }
+
+    .lfms-home-hero .lfms-create-btn {
+        position: relative !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        margin-top: 28px !important;
+    }
+}
+
+/* FINAL RESPONSIVE RULE: hero illustration/banner exists on desktop only. */
+@media (min-width: 1024px) {
+    .lfms-home-hero .lfms-hero-illustration {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    .lfms-home-hero .lfms-hero-illustration,
+    .lfms-home-hero .lfms-hero-icons,
+    .lfms-home-hero .lfms-hero-art {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Mobile keeps the original simple hero presentation — no banner artwork. */
+    .lfms-home-hero {
+        min-height: auto !important;
+        padding: 52px 22px 36px !important;
+        background: var(--paper) !important;
+    }
+
+    .lfms-home-hero::after {
+        display: none !important;
+    }
+
+    .lfms-home-hero .lfms-hero-content {
+        width: 100% !important;
+        max-width: 680px !important;
+    }
+
+    .lfms-home-hero .lfms-create-btn {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin-top: 24px !important;
+        width: auto !important;
+    }
+}
+
+
+/* =========================================================
+   FINAL PC-ONLY HERO — preserve original LFMS navbar/design
+   ========================================================= */
+@media (min-width:1024px){
+    .lfms-home-hero{
+        width:calc(100% - 52px)!important;
+        max-width:1320px!important;
+        height:520px!important;
+        min-height:520px!important;
+        margin:10px auto 0!important;
+        padding:36px 46px 34px!important;
+        display:block!important;
+        position:relative!important;
+        overflow:hidden!important;
+        background:#fff0b8!important;
+        border-radius:16px!important;
+    }
+
+    .lfms-home-hero .lfms-hero-content{
+        width:50%!important;
+        max-width:650px!important;
+        height:100%!important;
+        padding:0!important;
+        display:flex!important;
+        flex-direction:column!important;
+        align-items:flex-start!important;
+        justify-content:center!important;
+        position:relative!important;
+        z-index:5!important;
+    }
+
+    .lfms-home-hero .lfms-kicker{
+        margin:0 0 18px!important;
+    }
+
+    .lfms-home-hero h1{
+        margin:0!important;
+    }
+
+    .lfms-home-hero p{
+        margin:24px 0 0!important;
+    }
+
+    /* Button is in normal flow: directly below the subtitle, LEFT side. */
+    .lfms-home-hero .lfms-create-btn{
+        position:static!important;
+        left:auto!important;
+        right:auto!important;
+        top:auto!important;
+        bottom:auto!important;
+        transform:none!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        align-self:flex-start!important;
+        margin:28px 0 0!important;
+        min-width:270px!important;
+        width:270px!important;
+        height:62px!important;
+        padding:0 24px!important;
+        background:#e94b2d!important;
+        border:1px solid #e94b2d!important;
+        color:#fff!important;
+        z-index:6!important;
+    }
+
+    .lfms-home-hero .lfms-create-btn:hover{
+        background:#e94b2d!important;
+        border-color:#e94b2d!important;
+    }
+
+    .lfms-home-hero .lfms-hero-illustration{
+        display:block!important;
+        position:absolute!important;
+        top:0!important;
+        right:0!important;
+        bottom:0!important;
+        left:50%!important;
+        width:50%!important;
+        height:100%!important;
+        margin:0!important;
+        padding:0!important;
+        z-index:2!important;
+    }
+
+    .lfms-home-hero .lfms-hero-illustration img{
+        display:block!important;
+        width:100%!important;
+        height:100%!important;
+        object-fit:cover!important;
+        object-position:center center!important;
+    }
+}
+
+/* Mobile/tablet: no hero/banner artwork or mobile hero redesign. */
+@media (max-width:1023px){
+    .lfms-home-hero{
+        display:none!important;
+    }
+}
+
+
+/* =========================================================
+   LFMS FINAL THEME SYSTEM — LIGHT / DARK
+   This block intentionally comes LAST so older visual drafts
+   cannot override the active theme.
+   ========================================================= */
+
+/* Light theme tokens for the second-reference layer. */
+:root{
+    --lfms-bg:#fbfaf7;
+    --lfms-card:#ffffff;
+    --lfms-hero:#feedaF;
+    --lfms-hero-warm:#ffcf91;
+    --lfms-accent:#e36f43;
+    --lfms-ink:#171715;
+    --lfms-muted:#6e6a63;
+    --lfms-line:#e7e1d8;
+}
+
+/* Dark theme tokens. */
+html.dark-mode{
+    --lfms-bg:#111315;
+    --lfms-card:#191c20;
+    --lfms-hero:#292724;
+    --lfms-hero-warm:#4a3026;
+    --lfms-accent:#f08a67;
+    --lfms-ink:#f1f2f3;
+    --lfms-muted:#a9adb2;
+    --lfms-line:#30343a;
+}
+
+/* Global surfaces */
+body{
+    background:var(--lfms-bg)!important;
+    color:var(--lfms-ink)!important;
+}
+body,
+.site-header,
+.lfms-search-section,
+.lfms-post,
+.lfms-empty,
+.lfms-feed,
+.lfms-category-panel,
+.lfms-category-btn,
+.lfms-search-input input{
+    transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+
+/* Navbar — preserve requested full width / square corners. */
+.site-header,
+.site-header .navbar{
+    width:100%!important;
+    margin:0!important;
+    top:0!important;
+    border-radius:0!important;
+}
+.site-header{
+    background:color-mix(in srgb,var(--lfms-card) 96%,transparent)!important;
+    border-color:var(--lfms-line)!important;
+    box-shadow:0 2px 12px rgba(0,0,0,.05)!important;
+}
+html.dark-mode .site-header{
+    background:#191c20!important;
+    box-shadow:0 2px 14px rgba(0,0,0,.28)!important;
+}
+.nav-link,
+.navbar-brand,
+.nav-icon-link,
+.nav-logout-button{
+    color:var(--lfms-ink)!important;
+}
+.nav-link:hover,
+.navbar-brand:hover,
+.nav-icon-link:hover,
+.nav-logout-button:hover{
+    color:var(--lfms-accent)!important;
+}
+.nav-preference-button{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+html.dark-mode .navbar-toggler{
+    border-color:var(--lfms-line)!important;
+    background:#191c20!important;
+}
+
+/* Desktop hero */
+@media (min-width:1024px){
+    .lfms-home-hero{
+        background:var(--lfms-hero)!important;
+        border-color:var(--lfms-line)!important;
+    }
+    .lfms-home-hero h1,
+    .lfms-home-hero .lfms-kicker{
+        color:var(--lfms-ink)!important;
+    }
+    .lfms-home-hero p{
+        color:var(--lfms-muted)!important;
+    }
+    .lfms-home-hero .lfms-create-btn{
+        background:var(--lfms-accent)!important;
+        border-color:var(--lfms-accent)!important;
+        color:#fff!important;
+        box-shadow:0 10px 26px rgba(0,0,0,.14)!important;
+    }
+    .lfms-home-hero .lfms-create-btn:hover{
+        background:var(--lfms-accent)!important;
+        border-color:var(--lfms-accent)!important;
+    }
+
+    /* The supplied illustration stays visually intact in light mode.
+       In dark mode it is gently dimmed instead of inverted, preserving its colors. */
+    .lfms-home-hero .lfms-hero-illustration img{
+        filter:none!important;
+    }
+    html.dark-mode .lfms-home-hero .lfms-hero-illustration img{
+        filter:brightness(.72) saturate(.88)!important;
+    }
+}
+
+/* Search panel */
+.lfms-search-section{
+    background:var(--lfms-card)!important;
+    border-color:var(--lfms-line)!important;
+    box-shadow:0 5px 18px rgba(0,0,0,.05)!important;
+}
+html.dark-mode .lfms-search-section{
+    box-shadow:0 5px 20px rgba(0,0,0,.24)!important;
+}
+.lfms-category-btn{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.lfms-category-btn:hover{
+    border-color:var(--lfms-accent)!important;
+    color:var(--lfms-accent)!important;
+}
+.lfms-search-input input{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.lfms-search-input input::placeholder{
+    color:var(--lfms-muted)!important;
+}
+.lfms-search-x{
+    color:var(--lfms-muted)!important;
+}
+.lfms-search-submit{
+    background:var(--lfms-accent)!important;
+    border-color:var(--lfms-accent)!important;
+    color:#fff!important;
+}
+
+/* Category dropdown */
+.lfms-category-panel{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.lfms-category-panel a{
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.lfms-category-panel a:hover{
+    color:var(--lfms-accent)!important;
+    background:color-mix(in srgb,var(--lfms-accent) 8%,var(--lfms-card))!important;
+}
+
+/* Feed / cards */
+.lfms-post,
+.lfms-empty{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.lfms-post-title,
+.lfms-profile-link,
+.lfms-post-actions a,
+.lfms-post-actions button{
+    color:var(--lfms-ink)!important;
+}
+.lfms-post-title:hover,
+.lfms-profile-link:hover,
+.lfms-post-actions a:hover,
+.lfms-post-actions button:hover{
+    color:var(--lfms-accent)!important;
+}
+.lfms-post-header span,
+.lfms-meta,
+.lfms-reference,
+.lfms-post-count,
+.lfms-empty p{
+    color:var(--lfms-muted)!important;
+}
+.lfms-post,
+.lfms-post-header,
+.lfms-post-footer,
+.lfms-post-actions,
+.lfms-post-stats{
+    border-color:var(--lfms-line)!important;
+}
+
+/* Generic forms, profile/detail/admin surfaces */
+.simple-form,
+.form-shell,
+.detail-shell,
+.detail-card,
+.profile-card,
+.post-card,
+.empty-card,
+.stat,
+.admin-links a,
+.simple-table,
+.messages-list,
+.message-list-item{
+    background:var(--lfms-card);
+    color:var(--lfms-ink);
+    border-color:var(--lfms-line);
+}
+.simple-form input,
+.simple-form textarea,
+.simple-form select,
+.comment-form input,
+.inline-form input,
+.chat-compose textarea{
+    background:var(--lfms-card)!important;
+    color:var(--lfms-ink)!important;
+    border-color:var(--lfms-line)!important;
+}
+.simple-form input::placeholder,
+.simple-form textarea::placeholder,
+.comment-form input::placeholder,
+.inline-form input::placeholder,
+.chat-compose textarea::placeholder{
+    color:var(--lfms-muted)!important;
+}
+.simple-form label,
+.form-header,
+.detail-title,
+.section-heading h1{
+    color:var(--lfms-ink);
+}
+.muted,
+.side-link,
+.footer{
+    color:var(--lfms-muted)!important;
+}
+.side-link:hover{
+    color:var(--lfms-accent)!important;
+}
+.back-link{
+    color:var(--lfms-muted)!important;
+}
+.back-link:hover{
+    color:var(--lfms-accent)!important;
+}
+
+/* Tables */
+.table-row{
+    border-color:var(--lfms-line)!important;
+}
+.row-actions a,
+.row-actions button,
+.table-row button{
+    color:var(--lfms-ink);
+}
+.row-actions a:hover,
+.row-actions button:hover,
+.table-row button:hover{
+    color:var(--lfms-accent);
+}
+
+/* Auth / identity pages */
+body.identity-page{
+    background:var(--lfms-bg)!important;
+    color:var(--lfms-ink)!important;
+}
+html.dark-mode .auth-shell{
+    background:#111315!important;
+}
+html.dark-mode .auth-brand-panel,
+html.dark-mode .auth-form-panel{
+    background:#191c20!important;
+    color:#f1f2f3!important;
+    border-color:#30343a!important;
+}
+html.dark-mode .auth-brand-panel::before,
+html.dark-mode .auth-brand-panel::after{
+    opacity:.18!important;
+}
+html.dark-mode .auth-form-panel input,
+html.dark-mode .auth-form-panel select,
+html.dark-mode .auth-form-panel textarea{
+    background:#171a1e!important;
+    color:#f1f2f3!important;
+    border-color:#30343a!important;
+}
+html.dark-mode .auth-form-panel input::placeholder{
+    color:#8f959c!important;
+}
+html.dark-mode .auth-form-panel label,
+html.dark-mode .auth-form-panel h1,
+html.dark-mode .auth-form-panel h2,
+html.dark-mode .auth-form-panel p,
+html.dark-mode .auth-form-panel a{
+    color:#f1f2f3;
+}
+html.dark-mode .auth-form-panel a:hover{
+    color:#f08a67;
+}
+
+/* Prevent accidental white Bootstrap surfaces in dark mode. */
+html.dark-mode .bg-white,
+html.dark-mode .bg-light{
+    background-color:#191c20!important;
+    color:#f1f2f3!important;
+}
+html.dark-mode .text-dark{
+    color:#f1f2f3!important;
+}
+html.dark-mode .border,
+html.dark-mode .border-top,
+html.dark-mode .border-bottom,
+html.dark-mode .border-start,
+html.dark-mode .border-end{
+    border-color:#30343a!important;
+}
+
+/* Mobile/tablet: project requirement is NO banner. */
+@media (max-width:1023px){
+    .lfms-home-hero,
+    .lfms-home-hero .lfms-hero-illustration{
+        display:none!important;
+    }
+}

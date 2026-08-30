@@ -1,0 +1,17 @@
+@model LFMS.ViewModels.PublicProfileViewModel
+@{ ViewData["Title"] = Model.FullName; }
+<div class="public-profile-page">
+    <a class="back-link" asp-controller="Home" asp-action="Index">Back to feed</a>
+    <section class="public-profile-card">
+        <div class="public-profile-avatar">
+            <img src="@(string.IsNullOrWhiteSpace(Model.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : Model.ProfileImagePath)" alt="@Model.FullName" />
+        </div>
+        <div class="public-profile-info">
+            <p class="eyebrow">MEMBER PROFILE</p>
+            <h1>@Model.FullName</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber)) { <p class="muted">@Model.PhoneNumber</p> }
+            <div class="public-profile-stats"><span><b>@Model.PostCount</b> posts</span><span><b>@Model.CollectedCount</b> collected</span></div>
+            @if (Model.CanMessage) { <a class="btn btn-accent" asp-controller="Chat" asp-action="With" asp-route-userId="@Model.Id">Message</a> }
+        </div>
+    </section>
+</div>
