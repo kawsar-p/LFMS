@@ -1,0 +1,73 @@
+@model LFMS.Controllers.RegisterViewModel
+@{ ViewData["Title"] = "Register"; Layout = null; }
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Register - LFMS</title><link rel="stylesheet" href="~/css/identity.css" asp-append-version="true"></head><body class="identity-page"><main class="auth-shell"><section class="auth-brand-panel"><a class="auth-logo lfms-auth-logo" href="/" aria-label="Lost & Found"><img src="/images/lost-find-logo.png" alt="Lost & Found" /></a><div class="brand-copy"><span class="brand-kicker">JOIN THE COMMUNITY</span><h1>Post it.<br><span>Help find it.</span></h1><p>Create an account to report lost items, share found items, and join the conversation through comments.</p></div><div class="brand-note">Simple reporting. Helpful people. Better chances of returning lost belongings.</div></section><section class="auth-form-panel"><div class="auth-topline"><span>Create your account</span><span>Already registered? <a href="/Identity/Account/Login">Log in</a></span></div><div class="auth-form-wrap"><h2>Register</h2><p class="auth-subtitle">Create your LFMS account in a few seconds.</p><form method="post" action="/Identity/Account/Register" class="auth-form">
+@Html.AntiForgeryToken()<div asp-validation-summary="ModelOnly" class="validation-summary"></div><label asp-for="FullName">Full name <span class="required-star">*</span></label><input asp-for="FullName" autocomplete="name" placeholder="Your full name"><span asp-validation-for="FullName" class="field-error"></span><label asp-for="Email">Email <span class="required-star">*</span></label><input asp-for="Email" autocomplete="username" placeholder="name@example.com"><span asp-validation-for="Email" class="field-error"></span><label asp-for="PhoneNumber">Mobile number <span class="required-star">*</span></label><input asp-for="PhoneNumber" type="tel" autocomplete="tel" placeholder="01XXXXXXXXX"><span asp-validation-for="PhoneNumber" class="field-error"></span><label asp-for="Password">Password <span class="required-star">*</span></label><div class="password-input-wrap">
+<input asp-for="Password" autocomplete="new-password" placeholder="At least 6 characters" data-password-input />
+<button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false">
+    <svg data-eye viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+    <svg data-eye-off viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="m3 3 18 18"/><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.7M6.1 6.8C3.7 8.6 2.5 12 2.5 12S6 18 12 18c1.2 0 2.3-.2 3.3-.6"/><path d="M9.9 9.9a2.5 2.5 0 0 0 3.5 3.5"/></svg>
+</button>
+</div>
+<div class="password-requirements" data-password-requirements>
+  <div class="password-requirement" data-rule="length"><span>○</span> At least 6 characters</div>
+  <div class="password-requirement" data-rule="digit"><span>○</span> At least 1 number (0-9)</div>
+</div>
+<span asp-validation-for="Password" class="field-error"></span><label asp-for="ConfirmPassword">Confirm password <span class="required-star">*</span></label><div class="password-input-wrap">
+<input asp-for="ConfirmPassword" autocomplete="new-password" placeholder="Repeat your password" />
+<button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false">
+    <svg data-eye viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+    <svg data-eye-off viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="m3 3 18 18"/><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.7M6.1 6.8C3.7 8.6 2.5 12 2.5 12S6 18 12 18c1.2 0 2.3-.2 3.3-.6"/><path d="M9.9 9.9a2.5 2.5 0 0 0 3.5 3.5"/></svg>
+</button>
+</div><span asp-validation-for="ConfirmPassword" class="field-error"></span><button type="submit" class="auth-button">Create account</button><div class="auth-footer-links"><span>Already have an account?</span><a href="/Identity/Account/Login">Log in</a></div></form></div></section></main>
+<script>
+(function(){
+ const input=document.querySelector('[data-password-input]');
+ if(!input)return;
+ const rules={length:v=>v.length>=6,digit:v=>/[0-9]/.test(v)};
+ function update(){
+   const v=input.value;
+   document.querySelectorAll('[data-password-requirements] [data-rule]').forEach(el=>{
+     const ok=!!rules[el.dataset.rule]?.(v);
+     el.classList.toggle('valid',ok);
+     const icon=el.querySelector('span'); if(icon) icon.textContent=ok?'✓':'○';
+   });
+ }
+ input.addEventListener('input',update); update();
+ document.querySelectorAll('[data-password-toggle]').forEach(function(button){
+   button.addEventListener('click',function(){
+     const wrap=button.closest('.password-input-wrap'); const field=wrap && wrap.querySelector('input'); if(!field)return;
+     const show=field.type==='password'; field.type=show?'text':'password';
+     button.setAttribute('aria-pressed',show?'true':'false');
+     button.setAttribute('aria-label',show?'Hide password':'Show password');
+     const eye=button.querySelector('[data-eye]'), off=button.querySelector('[data-eye-off]');
+     if(eye) eye.style.display=show?'none':'block'; if(off) off.style.display=show?'block':'none';
+   });
+ });
+})();
+</script>
+<script id="auth-language">
+(function(){
+  const bn={
+    'LOST & FOUND MANAGEMENT SYSTEM':'লস্ট অ্যান্ড ফাউন্ড ম্যানেজমেন্ট সিস্টেম',
+    'LOST &amp; FOUND MANAGEMENT SYSTEM':'লস্ট অ্যান্ড ফাউন্ড ম্যানেজমেন্ট সিস্টেম',
+    'Find what was lost.':'যা হারিয়েছে তা খুঁজুন।','Return what was found.':'যা পাওয়া গেছে তা ফিরিয়ে দিন।',
+    'A simple community space to report lost items, share found items, and help them reach their owners.':'হারানো আইটেমের তথ্য দেওয়া, পাওয়া আইটেম শেয়ার করা এবং মালিকের কাছে পৌঁছাতে সাহায্য করার সহজ কমিউনিটি প্ল্যাটফর্ম।',
+    'Simple reporting. Helpful people. Better chances of returning lost belongings.':'সহজ রিপোর্টিং। সহায়ক মানুষ। হারানো জিনিস ফেরত পাওয়ার আরও ভালো সুযোগ।',
+    'Welcome back':'আবার স্বাগতম','New here?':'নতুন ব্যবহারকারী?','Create an account':'অ্যাকাউন্ট তৈরি করুন','Log in':'লগইন','Register':'রেজিস্টার',
+    'Enter your account details to continue.':'চালিয়ে যেতে আপনার অ্যাকাউন্টের তথ্য দিন।','Email':'ইমেইল','Password':'পাসওয়ার্ড','Remember me':'আমাকে মনে রাখুন',
+    'Don\'t have an account?':'অ্যাকাউন্ট নেই?','Already registered?':'ইতোমধ্যে রেজিস্টার করেছেন?','Create your account':'আপনার অ্যাকাউন্ট তৈরি করুন',
+    'JOIN THE COMMUNITY':'কমিউনিটিতে যোগ দিন','Post it.':'পোস্ট করুন।','Help find it.':'খুঁজে পেতে সাহায্য করুন।',
+    'Create an account to report lost items, share found items, and join the conversation through comments.':'হারানো আইটেমের তথ্য দিতে, পাওয়া আইটেম শেয়ার করতে এবং মন্তব্যের মাধ্যমে আলোচনায় যোগ দিতে অ্যাকাউন্ট তৈরি করুন।',
+    'Create your LFMS account in a few seconds.':'কয়েক সেকেন্ডেই আপনার LFMS অ্যাকাউন্ট তৈরি করুন।','Full name':'পূর্ণ নাম','Mobile number':'মোবাইল নম্বর',
+    'At least 6 characters':'কমপক্ষে ৬টি অক্ষর','At least 1 number (0-9)':'কমপক্ষে ১টি সংখ্যা (০-৯)','Confirm password':'পাসওয়ার্ড নিশ্চিত করুন',
+    'Already have an account?':'ইতোমধ্যে অ্যাকাউন্ট আছে?','name@example.com':'name@example.com','Your full name':'আপনার পূর্ণ নাম','At least 6 characters':'কমপক্ষে ৬টি অক্ষর','Repeat your password':'পাসওয়ার্ড আবার লিখুন'
+  };
+  const lang=localStorage.getItem('lfms-language')||'en';
+  if(lang!=='bn') return;
+  const walk=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT); const nodes=[];
+  while(walk.nextNode()) nodes.push(walk.currentNode);
+  nodes.forEach(n=>{const p=n.parentElement;if(!p||p.closest('script,style'))return;const t=n.nodeValue.trim();if(bn[t])n.nodeValue=n.nodeValue.replace(t,bn[t]);});
+  document.querySelectorAll('input[placeholder]').forEach(el=>{if(bn[el.placeholder])el.placeholder=bn[el.placeholder];});
+  document.title=(bn[document.title]||document.title).replace('Log in','লগইন').replace('Register','রেজিস্টার');
+})();
+</script></body></html>

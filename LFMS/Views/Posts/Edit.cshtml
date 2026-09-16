@@ -1,0 +1,180 @@
+@model PostCreateViewModel
+@{
+    ViewData["Title"] = "Edit Post";
+    var existingImageEntities = ViewBag.ExistingImageEntities as IEnumerable<LFMS.Models.PostImage> ?? Enumerable.Empty<LFMS.Models.PostImage>();
+}
+
+<div class="form-shell lfms-edit-page">
+    <div class="form-header">
+        <p class="eyebrow">EDIT POST</p>
+        <h1>Update your lost or found item.</h1>
+        <p class="muted">Remove old images or add new ones before saving.</p>
+    </div>
+
+    <form action="/Posts/Edit/@Model.Id" method="post" enctype="multipart/form-data" class="simple-form" id="editPostForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <label>Post Type</label>
+        <div class="type-options">
+            <label><input type="radio" name="PostType" value="Lost" @(Model.PostType == "Lost" ? "checked" : "") /> Lost</label>
+            <label><input type="radio" name="PostType" value="Found" @(Model.PostType == "Found" ? "checked" : "") /> Found</label>
+        </div>
+
+        <label for="Title">Item title</label>
+        <input id="Title" name="Title" value="@Model.Title" maxlength="120" placeholder="Item title" />
+
+        <label for="CategoryId">Category</label>
+        <select id="CategoryId" name="CategoryId">
+            <option value="">Select category</option>
+            @foreach (var c in ViewBag.Categories)
+            {
+                <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+            }
+        </select>
+
+        <label for="Description">Description</label>
+        <textarea id="Description" name="Description" rows="5" maxlength="2000" placeholder="Describe the item">@Model.Description</textarea>
+
+        <label for="PrivateVerificationDetails">Private verification information</label>
+        <textarea id="PrivateVerificationDetails" name="PrivateVerificationDetails" rows="4" maxlength="2000" placeholder="A detail only the real owner should know. This is not public.">@Model.PrivateVerificationDetails</textarea>
+        <small class="muted">Used only for claim verification; it is not shown on the public post.</small>
+
+        <label for="Location">Location</label>
+        <input id="Location" name="Location" value="@Model.Location" maxlength="150" placeholder="Where was it lost or found?" />
+
+        <label for="LostFoundDate">Date</label>
+        <input id="LostFoundDate" name="LostFoundDate" value="@Model.LostFoundDate.ToString("yyyy-MM-dd")" type="date" />
+
+        <label>Current images</label>
+        @if (existingImageEntities.Any())
+        {
+            <div class="existing-image-grid">
+                @foreach (var image in existingImageEntities)
+                {
+                    <div class="existing-image-card">
+                        <img src="@image.ImagePath" alt="Current post image" />
+                        <div class="existing-image-actions">
+                            <button type="submit"
+                                    class="remove-image-button"
+                                    form="removeImageForm_@image.Id"
+                                    formnovalidate
+                                    onclick="return confirm('Remove this image?');">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="muted image-help">Remove any image you no longer want to keep.</p>
+        }
+        else
+        {
+            <div class="no-existing-images">No images currently attached.</div>
+        }
+
+        <label for="editImages">Add new images</label>
+        <div class="upload-box">
+            <input id="editImages" name="Images" type="file" accept=".jpg,.jpeg,.png,.webp" multiple />
+            <strong>Choose images</strong>
+            <span>JPG, PNG or WEBP. Up to 8 new images, 5 MB each.</span>
+        </div>
+        <div id="editImagePreview" class="image-preview-grid" aria-live="polite"></div>
+
+        <button type="submit" form="editPostForm" class="btn btn-dark mt-2" id="savePostButton">Save Changes</button>
+    </form>
+
+@* Separate forms are intentionally outside the main Edit form. Nested HTML forms
+   can prevent the browser from submitting Save Changes correctly. *@
+@if (existingImageEntities != null)
+{
+    foreach (var image in existingImageEntities)
+    {
+        <form id="removeImageForm_@image.Id" asp-action="RemoveImage" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="imageId" value="@image.Id" />
+            <input type="hidden" name="postId" value="@Model.Id" />
+        </form>
+    }
+}
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const editImages = document.getElementById('editImages');
+        const editPreview = document.getElementById('editImagePreview');
+        let selectedEditFiles = [];
+
+        function syncEditFiles() {
+            const dt = new DataTransfer();
+            selectedEditFiles.forEach(file => dt.items.add(file));
+            editImages.files = dt.files;
+        }
+
+        function renderEditPreview() {
+            editPreview.innerHTML = '';
+
+            selectedEditFiles.forEach((file, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'preview-card upload-preview-card';
+
+                const image = document.createElement('img');
+                image.alt = file.name;
+                image.src = URL.createObjectURL(file);
+
+                const info = document.createElement('div');
+                info.className = 'upload-preview-info';
+
+                const name = document.createElement('span');
+                name.className = 'image-preview-name';
+                name.textContent = file.name;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'remove-preview-button';
+                remove.textContent = 'Remove';
+                remove.onclick = () => {
+                    selectedEditFiles.splice(index, 1);
+                    syncEditFiles();
+                    renderEditPreview();
+                };
+
+                info.append(name, remove);
+                wrapper.append(image, info);
+                editPreview.appendChild(wrapper);
+            });
+        }
+
+        editImages?.addEventListener('change', function () {
+            const incoming = Array.from(this.files || []);
+            const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+
+            for (const file of incoming) {
+                if (!allowed.includes(file.type)) {
+                    alert(`${file.name}: use JPG, PNG or WEBP.`);
+                    syncEditFiles();
+                    renderEditPreview();
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`${file.name}: image size must be 5 MB or less.`);
+                    syncEditFiles();
+                    renderEditPreview();
+                    return;
+                }
+            }
+
+            const combined = [...selectedEditFiles, ...incoming];
+            if (combined.length > 8) {
+                alert('You can upload up to 8 new images.');
+                return;
+            }
+
+            selectedEditFiles = combined;
+            syncEditFiles();
+            renderEditPreview();
+        });
+    </script>
+}

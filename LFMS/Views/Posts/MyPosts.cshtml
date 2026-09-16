@@ -1,0 +1,30 @@
+@model List<Post>
+@{ ViewData["Title"] = "My Posts"; }
+<div class="section-heading"><div><p class="eyebrow">YOUR POSTS</p><h1>My Posts</h1></div><a class="btn btn-dark" asp-action="Create">Create Post</a></div>
+<div class="simple-table">
+@foreach (var p in Model)
+{
+    <div class="table-row">
+        <div>
+            <strong>@p.Title</strong>
+            <div class="muted small">@p.PostType · @p.Category?.Name · @p.Comments.Count Comments · ID: @p.ReferenceCode</div>
+            <span class="status-badge @(p.Status == "Collected" ? "status-collected" : "status-available")">@p.Status</span>
+        </div>
+        <div class="row-actions">
+            <a asp-action="Details" asp-route-id="@p.Id">View</a>
+            <a asp-action="Edit" asp-route-id="@p.Id">Edit</a>
+            <form asp-action="ChangeStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@p.Id" />
+                <input type="hidden" name="status" value="@(p.Status == "Collected" ? "Available" : "Collected")" />
+                <button class="status-action" type="submit">@(p.Status == "Collected" ? "Mark Available" : "Mark Collected")</button>
+            </form>
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@p.Id" />
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+    </div>
+}
+</div>

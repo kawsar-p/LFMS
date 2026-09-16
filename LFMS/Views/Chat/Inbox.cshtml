@@ -1,0 +1,32 @@
+@model List<LFMS.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Messages";
+}
+<div class="messages-page">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">MESSAGES</p>
+            <h1 data-i18n="Messages">Messages</h1>
+            <p class="muted">Your recent private conversations.</p>
+        </div>
+    </div>
+    <div class="messages-list">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">No conversations yet. Open a person's profile to start a message.</div>
+        }
+        else
+        {
+            foreach (var person in Model)
+            {
+                <a class="message-list-item" asp-controller="Chat" asp-action="With" asp-route-userId="@person.Id">
+                    <span class="chat-avatar message-list-avatar">
+                        <img src="@(string.IsNullOrWhiteSpace(person.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : person.ProfileImagePath)" alt="@person.FullName" />
+                    </span>
+                    <span class="message-list-copy"><strong>@person.FullName</strong><small>Private conversation</small></span>
+                    <span class="message-list-arrow">→</span>
+                </a>
+            }
+        }
+    </div>
+</div>

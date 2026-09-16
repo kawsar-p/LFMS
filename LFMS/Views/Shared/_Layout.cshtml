@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-lfms-root>
+@using LFMS.Data
+@inject ApplicationDbContext AppDb
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Lost & Found</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/lfms-second-reference.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/hero-icon-banner.css" asp-append-version="true" />
+    <script>
+        (function () {
+            const theme = localStorage.getItem('lfms-theme');
+            if (theme === 'dark') document.documentElement.classList.add('dark-mode');
+            const language = localStorage.getItem('lfms-language');
+            if (language === 'bn') document.documentElement.lang = 'bn';
+        })();
+    </script>
+</head>
+<body>
+<header class="site-header">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid page-width">
+            <a class="navbar-brand lfms-logo-brand" asp-controller="Home" asp-action="Index" aria-label="Lost & Found"><img src="~/images/lost-find-logo.png" alt="Lost & Found" /></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav align-items-lg-center gap-lg-1 w-100">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index" data-i18n="Home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-type="Lost" data-i18n="Lost">Lost</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-type="Found" data-i18n="Found">Found</a></li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var currentNavUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        var unreadNavNotifications = currentNavUserId == null ? 0 : AppDb.Notifications.Count(n => n.UserId == currentNavUserId && !n.IsRead);
+                        var unreadNavMessages = currentNavUserId == null ? 0 : AppDb.ChatMessages.Count(n => n.ReceiverId == currentNavUserId && !n.IsRead);
+
+                        <li class="nav-item nav-action-item"><a class="nav-link" asp-controller="Posts" asp-action="Create" data-i18n="Create Post">Create Post</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item nav-action-item"><a class="nav-link" asp-controller="Admin" asp-action="Dashboard" data-i18n="Admin">Admin</a></li>
+                        }
+
+                        <li class="nav-spacer"></li>
+
+                        <li class="nav-item nav-preference-item">
+                            <button type="button" class="nav-preference-button" id="languageToggle" title="বাংলা / English" aria-label="বাংলা / English"><span id="languageLabel">বাংলা</span></button>
+                        </li>
+                        <li class="nav-item nav-preference-item">
+                            <button type="button" class="nav-preference-button theme-toggle" id="themeToggle" title="Light / Dark mode" aria-label="Light / Dark mode">
+                                <span class="theme-icon theme-sun" aria-hidden="true">☼</span><span class="theme-icon theme-moon" aria-hidden="true">◐</span>
+                            </button>
+                        </li>
+
+                        <li class="nav-utility-group" aria-label="Account actions">
+                            <a class="nav-icon-link" asp-controller="Chat" asp-action="Inbox" aria-label="Messages" title="Messages">
+                                <span class="nav-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5h16v11H8l-4 3v-14Z"/><path d="M8 10h8M8 13h5"/></svg></span>
+                                @if (unreadNavMessages > 0) { <span class="notification-badge nav-icon-badge">@(unreadNavMessages > 99 ? "99+" : unreadNavMessages.ToString())</span> }
+                            </a>
+                            <a class="nav-icon-link" asp-controller="Notifications" asp-action="Index" aria-label="Notifications" title="Notifications">
+                                <span class="nav-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>
+                                @if (unreadNavNotifications > 0) { <span class="notification-badge nav-icon-badge">@(unreadNavNotifications > 99 ? "99+" : unreadNavNotifications.ToString())</span> }
+                            </a>
+                            <a class="nav-icon-link" asp-controller="Profile" asp-action="Index" aria-label="Profile" title="Profile">
+                                <span class="nav-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-4 3-6 7-6s6.3 2 7 6"/></svg></span>
+                            </a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="nav-icon-link" asp-controller="Admin" asp-action="Settings" aria-label="Settings" title="Settings">
+                                    <span class="nav-svg-icon settings-gear-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" role="img">
+                                            <path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/>
+                                            <path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l2-1.5-2-3.4-2.4 1a8 8 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.6A8 8 0 0 0 7 6.6l-2.4-1-2 3.4 2 1.5a7.7 7.7 0 0 0 0 3l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 2.6 1.5l.4 2.6h4l.4-2.6a8 8 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.5Z"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                            }
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="nav-logout-form">
+                                <button class="nav-icon-link nav-logout-button" type="submit" aria-label="Logout" title="Logout">
+                                    <span class="nav-svg-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></svg></span>
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-spacer"></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login" data-i18n="Login">Login</a></li>
+                        <li class="nav-item"><a class="btn btn-accent btn-sm px-3" asp-controller="Account" asp-action="Register" data-i18n="Register">Register</a></li>
+                        <li class="nav-item nav-preference-item">
+                            <button type="button" class="nav-preference-button" id="languageToggle" title="বাংলা / English" aria-label="বাংলা / English"><span id="languageLabel">বাংলা</span></button>
+                        </li>
+                        <li class="nav-item nav-preference-item">
+                            <button type="button" class="nav-preference-button theme-toggle" id="themeToggle" title="Light / Dark mode" aria-label="Light / Dark mode"><span class="theme-icon theme-sun" aria-hidden="true">☼</span><span class="theme-icon theme-moon" aria-hidden="true">◐</span></button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<main class="page-width py-4">@RenderBody()</main>
+    <footer class="footer page-width" style="text-align: center;">&copy; 2026 Lost &amp; Found Management System</footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+        (function () {
+            const translations = {
+                'Home':'হোম','Lost':'হারানো','Found':'পাওয়া','Messages':'বার্তা','Notifications':'নোটিফিকেশন','Profile':'প্রোফাইল','Logout':'লগআউট','Create Post':'পোস্ট তৈরি','Admin':'অ্যাডমিন','Collection History':'কালেকশন হিস্টোরি',
+                'Claim this item':'এই পণ্যটি দাবি করুন','Confirm collection / return':'পণ্য সংগ্রহ / ফেরত নিশ্চিত করুন','Collection requests':'কালেকশন রিকোয়েস্ট','Admin Dashboard':'অ্যাডমিন ড্যাশবোর্ড','Settings':'সেটিংস','Login':'লগইন','Register':'রেজিস্টার',
+                'My Profile':'আমার প্রোফাইল','My Posts':'আমার পোস্ট','Notifications':'নোটিফিকেশন','Change password':'পাসওয়ার্ড পরিবর্তন','Save changes':'পরিবর্তন সংরক্ষণ','View my posts':'আমার পোস্ট দেখুন','View notifications':'নোটিফিকেশন দেখুন',
+                'Create Post':'পোস্ট তৈরি করুন','Back to feed':'ফিডে ফিরে যান','Publish Post':'পোস্ট প্রকাশ করুন','Comment':'মন্তব্য','Comments':'মন্তব্য','Message':'বার্তা','Send':'পাঠান','Read':'পড়া হয়েছে','Open':'খুলুন','Mark all as read':'সব পড়া হয়েছে হিসেবে চিহ্নিত করুন',
+                'Lost & Found':'লস্ট অ্যান্ড ফাউন্ড',
+                'Full name':'পূর্ণ নাম','Email':'ইমেইল','Mobile number':'মোবাইল নম্বর','Password':'পাসওয়ার্ড',
+                'Confirm password':'পাসওয়ার্ড নিশ্চিত করুন','Confirm new password':'নতুন পাসওয়ার্ড নিশ্চিত করুন',
+                'New password':'নতুন পাসওয়ার্ড','Remember me':'আমাকে মনে রাখুন','Enter your password':'আপনার পাসওয়ার্ড দিন',
+                'At least 6 characters':'কমপক্ষে ৬টি অক্ষর','At least 1 number (0-9)':'কমপক্ষে ১টি সংখ্যা (০-৯)',
+                'Leave empty to keep current password':'বর্তমান পাসওয়ার্ড রাখতে খালি রাখুন','Save changes':'পরিবর্তন সংরক্ষণ করুন',
+                'Save user changes':'ইউজারের পরিবর্তন সংরক্ষণ করুন','Reset password':'পাসওয়ার্ড রিসেট করুন',
+                'Delete my account':'আমার অ্যাকাউন্ট মুছুন','Delete account':'অ্যাকাউন্ট মুছুন',
+                'Log in':'লগইন','Create account':'অ্যাকাউন্ট তৈরি করুন','Register':'রেজিস্টার',
+                'Already have an account?':'ইতোমধ্যে অ্যাকাউন্ট আছে?',"Don't have an account?":"অ্যাকাউন্ট নেই?",
+                'New here?':'নতুন ব্যবহারকারী?','Already registered?':'ইতোমধ্যে রেজিস্টার করেছেন?'
+            };
+            const looseTranslations = {
+                'LOST & FOUND COMMUNITY':'লস্ট অ্যান্ড ফাউন্ড কমিউনিটি',
+                'Find what was lost.':'যা হারিয়েছে তা খুঁজুন।',
+                'Return what was found.':'যা পাওয়া গেছে তা ফিরিয়ে দিন।',
+                'Search by item ID, title, or location.':'আইডি, শিরোনাম বা অবস্থান দিয়ে খুঁজুন।',
+                'Categories':'ক্যাটাগরি',
+                'Search item ID, title or location':'আইডি, শিরোনাম বা অবস্থান খুঁজুন',
+                'Latest posts':'সাম্প্রতিক পোস্ট',
+                'CREATE POST':'পোস্ট তৈরি করুন',
+                'Share an item with the community.':'কমিউনিটির সাথে একটি আইটেম শেয়ার করুন।',
+                'Add the details people need to help return a lost item or identify something that has been found.':'হারানো আইটেম ফেরত দিতে বা পাওয়া আইটেম শনাক্ত করতে প্রয়োজনীয় তথ্য দিন।',
+                'Choose a post type':'পোস্টের ধরন নির্বাচন করুন',
+                'Add clear details':'স্পষ্ট তথ্য যোগ করুন',
+                'Add a photo':'ছবি যোগ করুন',
+                'Post type':'পোস্টের ধরন',
+                'Something you can no longer find.':'যা আর খুঁজে পাচ্ছেন না।',
+                'Something you found and want to return.':'যা পেয়েছেন এবং ফেরত দিতে চান।',
+                'Item title':'আইটেমের শিরোনাম',
+                'Category':'ক্যাটাগরি',
+                'Select category':'ক্যাটাগরি নির্বাচন করুন',
+                'Description':'বিবরণ',
+                'Location':'অবস্থান',
+                'Where was it lost or found?':'কোথায় হারিয়েছে বা পাওয়া গেছে?',
+                'Date':'তারিখ',
+                'Item images':'আইটেমের ছবি',
+                'Choose an image':'ছবি নির্বাচন করুন',
+                'JPG, PNG or WEBP. Up to 8 images, 5 MB each.':'JPG, PNG বা WEBP। সর্বোচ্চ ৮টি ছবি, প্রতিটি ৫ MB পর্যন্ত।',
+                'Your post will appear on the public feed.':'আপনার পোস্ট পাবলিক ফিডে দেখা যাবে।',
+                'Private chat':'ব্যক্তিগত চ্যাট',
+                'Write a message...':'বার্তা লিখুন...',
+                'Start the conversation.':'কথোপকথন শুরু করুন।',
+                'UPDATES':'আপডেট',
+                'unread notification':'অপঠিত নোটিফিকেশন',
+                'No notifications yet.':'এখনও কোনো নোটিফিকেশন নেই।',
+                'ACCOUNT':'অ্যাকাউন্ট',
+                'Update your personal information and account password.':'আপনার ব্যক্তিগত তথ্য ও অ্যাকাউন্টের পাসওয়ার্ড আপডেট করুন।',
+                'Profile photo':'প্রোফাইল ছবি',
+                'JPG, PNG or WEBP, up to 5 MB.':'JPG, PNG বা WEBP, সর্বোচ্চ ৫ MB।',
+                'ACCOUNT ACTIONS':'অ্যাকাউন্ট অ্যাকশন',
+                'Delete account':'অ্যাকাউন্ট মুছুন',
+                'Delete my account':'আমার অ্যাকাউন্ট মুছুন',
+                'Your recent private conversations.':'আপনার সাম্প্রতিক ব্যক্তিগত কথোপকথন।',
+                "No conversations yet. Open a person's profile to start a message.":"এখনও কোনো কথোপকথন নেই। বার্তা পাঠাতে কারও প্রোফাইল খুলুন।",
+                'Private conversation':'ব্যক্তিগত কথোপকথন',
+                'Confirm you received your lost item':'আপনি আপনার হারানো পণ্যটি পেয়েছেন তা নিশ্চিত করুন',
+                'Confirm you received this found item':'আপনি এই পাওয়া পণ্যটি পেয়েছেন তা নিশ্চিত করুন',
+                'Complete this form only after you have actually received your lost item.':'আপনি সত্যিই আপনার হারানো পণ্যটি পাওয়ার পরেই এই ফর্মটি পূরণ করুন।',
+                'Complete this form only if you are the rightful owner and have actually received this found item.':'আপনি প্রকৃত মালিক হয়ে এই পাওয়া পণ্যটি সত্যিই পাওয়ার পরেই এই ফর্মটি পূরণ করুন।',
+                'COLLECTION CONFIRMATION':'কালেকশন নিশ্চিতকরণ',
+                'ITEM':'পণ্য',
+                'Why is this required?':'এটি কেন প্রয়োজন?',
+                'This confirmation creates a permanent record so the administrator can review when and how the item was recovered or returned.':'এই নিশ্চিতকরণটি স্থায়ী রেকর্ড তৈরি করে, যাতে অ্যাডমিন কখন এবং কীভাবে পণ্যটি উদ্ধার বা ফেরত দেওয়া হয়েছে তা পর্যালোচনা করতে পারেন।',
+                'Your information':'আপনার তথ্য',
+                'Verification details':'যাচাইয়ের তথ্য',
+                'How did you identify this item?':'আপনি কীভাবে পণ্যটি শনাক্ত করেছেন?',
+                'Collection / handover details':'সংগ্রহ / হস্তান্তরের বিবরণ',
+                'Confirmation date':'নিশ্চিতকরণের তারিখ',
+                'I confirm that I have actually completed the recovery/return described above and that the information I provided is true.':'আমি নিশ্চিত করছি যে উপরে বর্ণিত উদ্ধার/ফেরত দেওয়ার কাজটি সত্যিই সম্পন্ন হয়েছে এবং আমার দেওয়া তথ্য সত্য।',
+                'This submission will be stored in Admin → Collection History.':'এই তথ্য Admin → Collection History-তে সংরক্ষণ করা হবে।',
+                'Submit confirmation':'নিশ্চিতকরণ জমা দিন',
+                'Back to post':'পোস্টে ফিরে যান',
+                'Collection confirmation submitted. The item is now recorded as collected.':'কালেকশন নিশ্চিতকরণ জমা হয়েছে। পণ্যটি এখন Collected হিসেবে রেকর্ড করা হয়েছে।',
+                'Collection confirmation submitted and stored in history.':'কালেকশন নিশ্চিতকরণ জমা হয়েছে এবং হিস্টোরিতে সংরক্ষিত আছে।',
+                'Collection History':'কালেকশন হিস্টোরি',
+                'Claim this item':'এই পণ্যটি দাবি করুন','Confirm collection / return':'পণ্য সংগ্রহ / ফেরত নিশ্চিত করুন','Collection requests':'কালেকশন রিকোয়েস্ট','Admin Dashboard':'অ্যাডমিন ড্যাশবোর্ড',
+                'Every submitted recovery or return confirmation is stored here.':'প্রতিটি উদ্ধার বা ফেরত দেওয়ার নিশ্চিতকরণ এখানে সংরক্ষণ করা হয়।',
+                'Manage Users':'ইউজার ম্যানেজ করুন',
+                'At least 6 characters':'কমপক্ষে ৬টি অক্ষর',
+                'Enter your password':'আপনার পাসওয়ার্ড দিন',
+                'Repeat your password':'পাসওয়ার্ড আবার লিখুন',
+                'Leave empty to keep current password':'বর্তমান পাসওয়ার্ড রাখতে খালি রাখুন',
+                'Leave empty to keep the current password.':'বর্তমান পাসওয়ার্ড রাখতে খালি রাখুন।',
+                'At least 6 characters':'কমপক্ষে ৬টি অক্ষর',
+                'At least 1 number (0-9)':'কমপক্ষে ১টি সংখ্যা (০-৯)'
+            };
+            const extraTranslations = {
+                'Dashboard':'ড্যাশবোর্ড','A quick overview of the Lost & Found system.':'লস্ট অ্যান্ড ফাউন্ড সিস্টেমের দ্রুত সারসংক্ষেপ দেখতে এখানে ক্লিক করুন।',
+                'Total users':'মোট ব্যবহারকারী','Active posts':'সক্রিয় পোস্ট','Collected':'সংগৃহীত','Post activity':'পোস্ট কার্যক্রম','LAST 7 DAYS':'গত ৭ দিন','Lost vs Found posts':'হারানো বনাম পাওয়া পোস্ট','Manage Posts':'পোস্ট পরিচালনা','Manage Comments':'মন্তব্য পরিচালনা','Manage Categories':'ক্যাটাগরি পরিচালনা','Manage Users':'ব্যবহারকারী পরিচালনা',
+                'All statuses':'সব স্ট্যাটাস','All types':'সব ধরন','All categories':'সব ক্যাটাগরি','Clear filters':'ফিল্টার পরিষ্কার','All roles':'সব রোল','All account statuses':'সব অ্যাকাউন্ট স্ট্যাটাস','Email confirmation':'ইমেইল নিশ্চিতকরণ','Phone confirmation':'ফোন নিশ্চিতকরণ','Confirmed':'নিশ্চিত','Not confirmed':'নিশ্চিত নয়','Admin Settings':'অ্যাডমিন সেটিংস',
+                'ADMIN':'অ্যাডমিন','ADMIN / CATEGORIES':'অ্যাডমিন / ক্যাটাগরি','ADMIN / COMMENTS':'অ্যাডমিন / মন্তব্য','ADMIN / HISTORY':'অ্যাডমিন / হিস্টোরি','ADMIN / POSTS':'অ্যাডমিন / পোস্ট','ADMIN / USER':'অ্যাডমিন / ব্যবহারকারী','ADMIN / USERS':'অ্যাডমিন / ব্যবহারকারীগণ','ADMIN CONTROL':'অ্যাডমিন নিয়ন্ত্রণ','ADMIN SETTINGS':'অ্যাডমিন সেটিংস',
+                'Manage Categories':'ক্যাটাগরি পরিচালনা','Create and maintain the categories used for Lost & Found posts.':'লস্ট অ্যান্ড ফাউন্ড পোস্টের জন্য ব্যবহৃত ক্যাটাগরি তৈরি ও পরিচালনা করুন।','New category':'নতুন ক্যাটাগরি','Add category':'ক্যাটাগরি যোগ করুন','Edit category':'ক্যাটাগরি সম্পাদনা','Delete category':'ক্যাটাগরি মুছুন','e.g. ID Card, Phone, Wallet':'যেমন: আইডি কার্ড, ফোন, ওয়ালেট',
+                'Manage Comments':'মন্তব্য পরিচালনা','Keep the community discussion clean and remove unwanted comments quickly.':'কমিউনিটির আলোচনা সুন্দর রাখুন এবং প্রয়োজন হলে অনাকাঙ্ক্ষিত মন্তব্য দ্রুত সরিয়ে দিন।','No comments found.':'কোনো মন্তব্য পাওয়া যায়নি।','Delete':'মুছুন','Comment':'মন্তব্য','commented on':'মন্তব্য করেছেন',
+                'Manage Posts':'পোস্ট পরিচালনা','Review listings, update their status and remove posts when necessary.':'পোস্টগুলো পর্যালোচনা করুন, স্ট্যাটাস আপডেট করুন এবং প্রয়োজন হলে পোস্ট সরিয়ে দিন।','No posts found.':'কোনো পোস্ট পাওয়া যায়নি।','View':'দেখুন','Edit':'সম্পাদনা','Remove':'সরান','Status':'স্ট্যাটাস','Type':'ধরন','POSTED BY':'পোস্ট করেছেন',
+                'Manage Users':'ব্যবহারকারী পরিচালনা','Control accounts, roles, contact details and access status from one place.':'এক জায়গা থেকে অ্যাকাউন্ট, রোল, যোগাযোগের তথ্য ও অ্যাক্সেস স্ট্যাটাস পরিচালনা করুন।','Users':'ব্যবহারকারী','User':'ব্যবহারকারী','User role':'ব্যবহারকারীর রোল','Account status':'অ্যাকাউন্ট স্ট্যাটাস','Active':'সক্রিয়','Inactive':'নিষ্ক্রিয়','Account control':'অ্যাকাউন্ট নিয়ন্ত্রণ','Account settings':'অ্যাকাউন্ট সেটিংস','Account ID:':'অ্যাকাউন্ট আইডি:','Full user access':'পূর্ণ ব্যবহারকারী অ্যাক্সেস','Inactive users cannot log in.':'নিষ্ক্রিয় ব্যবহারকারীরা লগইন করতে পারবেন না।','Delete this user':'এই ব্যবহারকারী মুছুন','Administrator account':'অ্যাডমিনিস্ট্রেটর অ্যাকাউন্ট','Administrator has full control over this account.':'অ্যাডমিনিস্ট্রেটর এই অ্যাকাউন্টের পূর্ণ নিয়ন্ত্রণ রাখেন।','Email confirmed':'ইমেইল নিশ্চিত','Phone confirmed':'ফোন নিশ্চিত',
+                'Basic information':'মৌলিক তথ্য','Change password':'পাসওয়ার্ড পরিবর্তন','Change the administrator email or set a new password.':'অ্যাডমিনের ইমেইল পরিবর্তন করুন অথবা নতুন পাসওয়ার্ড সেট করুন।','Leave the new password fields empty if you only want to change the email.':'শুধু ইমেইল পরিবর্তন করতে চাইলে নতুন পাসওয়ার্ডের ঘরগুলো খালি রাখুন।','Leave these fields empty if you do not want to change your password.':'পাসওয়ার্ড পরিবর্তন করতে না চাইলে এই ঘরগুলো খালি রাখুন।','Save Changes':'পরিবর্তন সংরক্ষণ','Save user changes':'ব্যবহারকারীর পরিবর্তন সংরক্ষণ','Reset password':'পাসওয়ার্ড রিসেট',
+                'Posts':'পোস্ট','Categories':'ক্যাটাগরি','Comments':'মন্তব্য','Notifications':'নোটিফিকেশন','Messages':'বার্তা','Settings':'সেটিংস','Profile':'প্রোফাইল','My Profile':'আমার প্রোফাইল','My Posts':'আমার পোস্ট','View my posts':'আমার পোস্ট দেখুন','View notifications':'নোটিফিকেশন দেখুন','Back to dashboard':'ড্যাশবোর্ডে ফিরে যান','Back to users':'ব্যবহারকারীদের তালিকায় ফিরে যান','Back to profile':'প্রোফাইলে ফিরে যান','Back to feed':'ফিডে ফিরে যান','Back to post':'পোস্টে ফিরে যান',
+                'CREATE POST':'পোস্ট তৈরি','Create Post':'পোস্ট তৈরি','EDIT POST':'পোস্ট সম্পাদনা','Edit post':'পোস্ট সম্পাদনা','Update your lost or found item.':'আপনার হারানো বা পাওয়া আইটেমের তথ্য আপডেট করুন।','Tell the community whether the item was lost or found.':'আইটেমটি হারিয়েছে নাকি পাওয়া গেছে তা কমিউনিটিকে জানান।','Use a useful title, location, date and description.':'স্পষ্ট শিরোনাম, অবস্থান, তারিখ ও বিবরণ দিন।','Choose images':'ছবি নির্বাচন করুন','Add new images':'নতুন ছবি যোগ করুন','Current images':'বর্তমান ছবি','No images currently attached.':'বর্তমানে কোনো ছবি সংযুক্ত নেই।','Remove any image you no longer want to keep.':'যে ছবিগুলো আর রাখতে চান না সেগুলো সরিয়ে দিন।','Remove old images or add new ones before saving.':'সংরক্ষণ করার আগে পুরোনো ছবি সরান অথবা নতুন ছবি যোগ করুন।','Cancel':'বাতিল','Post it.':'পোস্ট করুন।','Help find it.':'খুঁজে পেতে সাহায্য করুন।','Create an account':'অ্যাকাউন্ট তৈরি করুন','Create your account':'আপনার অ্যাকাউন্ট তৈরি করুন','Create your LFMS account in a few seconds.':'কয়েক সেকেন্ডেই আপনার LFMS অ্যাকাউন্ট তৈরি করুন।','Enter your account details to continue.':'চালিয়ে যেতে আপনার অ্যাকাউন্টের তথ্য দিন।','Welcome back':'আবার স্বাগতম','Join the community':'কমিউনিটিতে যোগ দিন','JOIN THE COMMUNITY':'কমিউনিটিতে যোগ দিন',
+                'Search':'খুঁজুন','Search by item ID, title, or location.':'আইটেম আইডি, শিরোনাম বা অবস্থান দিয়ে খুঁজুন।','Search item ID, title or location':'আইটেম আইডি, শিরোনাম বা অবস্থান খুঁজুন','Latest items':'সাম্প্রতিক আইটেম','COMMUNITY POSTS':'কমিউনিটি পোস্ট','posts':'পোস্ট','posts found':'টি পোস্ট পাওয়া গেছে','No posts found.':'কোনো পোস্ট পাওয়া যায়নি।','Try another item ID, title, or location.':'অন্য আইটেম আইডি, শিরোনাম বা অবস্থান দিয়ে চেষ্টা করুন।','View post':'পোস্ট দেখুন','more':'আরও','Likes':'লাইক','Comments':'মন্তব্য','POST ID:':'পোস্ট আইডি:','ID:':'আইডি:','Item':'আইটেম','Item title':'আইটেমের শিরোনাম','Description':'বিবরণ','Location':'অবস্থান','Date':'তারিখ','Category':'ক্যাটাগরি','Select category':'ক্যাটাগরি নির্বাচন করুন','Post Type':'পোস্টের ধরন','Post type':'পোস্টের ধরন','Lost':'হারানো','Found':'পাওয়া','Something you can no longer find.':'যে আইটেমটি আর খুঁজে পাচ্ছেন না।','Something you found and want to return.':'যে আইটেমটি পেয়েছেন এবং ফেরত দিতে চান।','Where was it lost or found?':'কোথায় হারিয়েছে বা পাওয়া গেছে?','A clear image makes an item easier to recognize.':'স্পষ্ট ছবি আইটেম শনাক্ত করা সহজ করে।','Your post will appear on the public feed.':'আপনার পোস্ট পাবলিক ফিডে দেখা যাবে।','Publish Post':'পোস্ট প্রকাশ করুন','Save changes':'পরিবর্তন সংরক্ষণ করুন','Update':'আপডেট',
+                'Private chat':'ব্যক্তিগত চ্যাট','Private conversation':'ব্যক্তিগত কথোপকথন','Your recent private conversations.':'আপনার সাম্প্রতিক ব্যক্তিগত কথোপকথন।','No conversations yet. Open a person\'s profile to start a message.':'এখনও কোনো কথোপকথন নেই। বার্তা পাঠাতে কারও প্রোফাইল খুলুন।','Write a message...':'বার্তা লিখুন...','Start the conversation.':'কথোপকথন শুরু করুন।','Send':'পাঠান','Read':'পড়া হয়েছে','Open':'খুলুন','Message':'বার্তা','Messages':'বার্তা',
+                'UPDATES':'আপডেট','unread notification':'অপঠিত নোটিফিকেশন','No notifications yet.':'এখনও কোনো নোটিফিকেশন নেই।','Mark all as read':'সবগুলো পড়া হয়েছে হিসেবে চিহ্নিত করুন',
+                'ACCOUNT':'অ্যাকাউন্ট','Update your personal information and account password.':'আপনার ব্যক্তিগত তথ্য ও অ্যাকাউন্টের পাসওয়ার্ড আপডেট করুন।','Profile photo':'প্রোফাইল ছবি','ACCOUNT ACTIONS':'অ্যাকাউন্ট অ্যাকশন','Delete account':'অ্যাকাউন্ট মুছুন','Delete my account':'আমার অ্যাকাউন্ট মুছুন','This permanently removes your account, posts, comments and likes.':'এটি আপনার অ্যাকাউন্ট, পোস্ট, মন্তব্য ও লাইক স্থায়ীভাবে মুছে দেবে।','Permanent deletion':'স্থায়ীভাবে মুছে ফেলা',
+                'COLLECTION CONFIRMATION':'কালেকশন নিশ্চিতকরণ','Confirm you received your lost item':'আপনি আপনার হারানো আইটেম পেয়েছেন তা নিশ্চিত করুন','Confirm you received this found item':'আপনি এই পাওয়া আইটেমটি পেয়েছেন তা নিশ্চিত করুন','Complete this form only after you have actually received your lost item.':'আপনি সত্যিই আপনার হারানো আইটেম পাওয়ার পরেই এই ফর্মটি পূরণ করুন।','Complete this form only if you are the rightful owner and have actually received this found item.':'আপনি প্রকৃত মালিক হয়ে আইটেমটি সত্যিই পাওয়ার পরেই এই ফর্মটি পূরণ করুন।','Why is this required?':'এটি কেন প্রয়োজন?','This confirmation creates a permanent record so the administrator can review when and how the item was recovered or returned.':'এই নিশ্চিতকরণটি স্থায়ী রেকর্ড তৈরি করে, যাতে অ্যাডমিন কখন এবং কীভাবে আইটেমটি উদ্ধার বা ফেরত দেওয়া হয়েছে তা পর্যালোচনা করতে পারেন।','Your information':'আপনার তথ্য','Verification details':'যাচাইয়ের তথ্য','How did you identify this item?':'আপনি কীভাবে এই আইটেমটি শনাক্ত করেছেন?','Collection / handover details':'সংগ্রহ / হস্তান্তরের বিবরণ','Confirmation date':'নিশ্চিতকরণের তারিখ','Confirmed by':'নিশ্চিত করেছেন','Handover':'হস্তান্তর','I confirm that I have actually completed the recovery/return described above and that the information I provided is true.':'আমি নিশ্চিত করছি যে উপরে বর্ণিত উদ্ধার/ফেরতের কাজটি সত্যিই সম্পন্ন হয়েছে এবং আমার দেওয়া তথ্য সত্য।','This submission will be stored in Admin → Collection History.':'এই তথ্য অ্যাডমিন → কালেকশন হিস্টোরিতে সংরক্ষণ করা হবে।','Submit confirmation':'নিশ্চিতকরণ জমা দিন','Collection confirmation submitted. The item is now recorded as collected.':'কালেকশন নিশ্চিতকরণ জমা হয়েছে। আইটেমটি এখন সংগৃহীত হিসেবে রেকর্ড করা হয়েছে।','Collection confirmation submitted and stored in history.':'কালেকশন নিশ্চিতকরণ জমা হয়েছে এবং হিস্টোরিতে সংরক্ষিত আছে।','Collection History':'কালেকশন হিস্টোরি',
+                'Claim this item':'এই পণ্যটি দাবি করুন','Confirm collection / return':'পণ্য সংগ্রহ / ফেরত নিশ্চিত করুন','Collection requests':'কালেকশন রিকোয়েস্ট','Admin Dashboard':'অ্যাডমিন ড্যাশবোর্ড','Every submitted recovery or return confirmation is stored here.':'প্রতিটি উদ্ধার বা ফেরতের নিশ্চিতকরণ এখানে সংরক্ষণ করা হয়।','No collection confirmations have been submitted yet.':'এখনও কোনো কালেকশন নিশ্চিতকরণ জমা হয়নি।',
+                'LOST & FOUND COMMUNITY':'লস্ট অ্যান্ড ফাউন্ড কমিউনিটি','LOST &amp; FOUND MANAGEMENT SYSTEM':'লস্ট অ্যান্ড ফাউন্ড ম্যানেজমেন্ট সিস্টেম','LOST & FOUND MANAGEMENT SYSTEM':'লস্ট অ্যান্ড ফাউন্ড ম্যানেজমেন্ট সিস্টেম','Find what was lost.':'যা হারিয়েছে তা খুঁজুন।','Return what was found.':'যা পাওয়া গেছে তা ফিরিয়ে দিন।','A simple community space to report lost items, share found items, and help them reach their owners.':'হারানো আইটেমের তথ্য দেওয়া, পাওয়া আইটেম শেয়ার করা এবং মালিকের কাছে পৌঁছাতে সাহায্য করার সহজ কমিউনিটি প্ল্যাটফর্ম।','Simple reporting. Helpful people. Better chances of returning lost belongings.':'সহজ রিপোর্টিং। সহায়ক মানুষ। হারানো জিনিস ফেরত পাওয়ার আরও ভালো সুযোগ।','New here?':'নতুন ব্যবহারকারী?','Already registered?':'ইতোমধ্যে রেজিস্টার করেছেন?','Log in':'লগইন','Register':'রেজিস্টার','Remember me':'আমাকে মনে রাখুন','Password':'পাসওয়ার্ড','Confirm password':'পাসওয়ার্ড নিশ্চিত করুন','Full name':'পূর্ণ নাম','Mobile number':'মোবাইল নম্বর','Email':'ইমেইল','At least 6 characters':'কমপক্ষে ৬টি অক্ষর','At least 1 number (0-9)':'কমপক্ষে ১টি সংখ্যা (০-৯)','Enter your password':'আপনার পাসওয়ার্ড দিন','Repeat your password':'পাসওয়ার্ড আবার লিখুন','Create account':'অ্যাকাউন্ট তৈরি করুন','Already have an account?':'ইতোমধ্যে অ্যাকাউন্ট আছে?','Don\'t have an account?':'অ্যাকাউন্ট নেই?','Log in - LFMS':'লগইন - LFMS','Register - LFMS':'রেজিস্টার - LFMS',
+                'Profile updated successfully.':'প্রোফাইল সফলভাবে আপডেট হয়েছে.','The administrator account cannot be deleted here.':'অ্যাডমিনিস্ট্রেটর অ্যাকাউন্টটি এখান থেকে মুছে ফেলা যাবে না.','Post updated successfully.':'পোস্ট সফলভাবে আপডেট হয়েছে.','This post has already been confirmed as collected.':'এই পোস্টটি ইতোমধ্যে সংগৃহীত হিসেবে নিশ্চিত করা হয়েছে.','A collection confirmation has already been submitted for this post.':'এই পোস্টের জন্য কালেকশন নিশ্চিতকরণ ইতোমধ্যে জমা হয়েছে.','Collection confirmation submitted. The item is now recorded as collected.':'কালেকশন নিশ্চিতকরণ জমা হয়েছে. আইটেমটি এখন সংগৃহীত হিসেবে রেকর্ড করা হয়েছে.','You cannot deactivate your own admin account.':'আপনি নিজের অ্যাডমিন অ্যাকাউন্ট নিষ্ক্রিয় করতে পারবেন না.','You cannot delete your own admin account.':'আপনি নিজের অ্যাডমিন অ্যাকাউন্ট মুছতে পারবেন না.','Admin account settings updated successfully.':'অ্যাডমিন অ্যাকাউন্টের সেটিংস সফলভাবে আপডেট হয়েছে.','is now Active.':'এখন সক্রিয়.','is now Inactive.':'এখন নিষ্ক্রিয়.','Admin':'অ্যাডমিন','Admin Settings':'অ্যাডমিন সেটিংস','Settings':'সেটিংস','Only users with the Admin role can access this page.':'শুধুমাত্র অ্যাডমিন রোলের ব্যবহারকারীরা এই পেজে প্রবেশ করতে পারবেন।','ID Card':'আইডি কার্ড','Phone':'ফোন','Wallet':'ওয়ালেট','No image available':'কোনো ছবি নেই','View full image':'পূর্ণ ছবি দেখুন'
+            };
+            Object.assign(translations, extraTranslations);
+            Object.assign(looseTranslations, extraTranslations);
+
+            function translateLooseText(language) {
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                const nodes = [];
+                while (walker.nextNode()) nodes.push(walker.currentNode);
+                nodes.forEach(node => {
+                    const parent = node.parentElement;
+                    if (!parent || parent.closest('script,style') || parent.hasAttribute('data-i18n')) return;
+                    const current = node.nodeValue;
+                    const clean = current.trim();
+                    if (!clean) return;
+                    if (!node.__lfmsOriginal) node.__lfmsOriginal = clean;
+                    const original = node.__lfmsOriginal;
+                    const translated = looseTranslations[original];
+                    if (language === 'bn' && translated) node.nodeValue = current.replace(clean, translated);
+                    if (language === 'en') node.nodeValue = current.replace(clean, original);
+                });
+            }
+            function translateText(language) {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    el.textContent = language === 'bn' ? (translations[key] || key) : key;
+                });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    el.placeholder = language === 'bn' ? (translations[key] || key) : key;
+                });
+                document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-lfms-original-placeholder') || el.placeholder;
+                    if (!el.hasAttribute('data-lfms-original-placeholder')) el.setAttribute('data-lfms-original-placeholder', key);
+                    const translated = looseTranslations[key] || translations[key];
+                    if (language === 'bn' && translated) el.placeholder = translated;
+                    if (language === 'en') el.placeholder = key;
+                });
+                translateLooseText(language);
+                document.querySelectorAll('[title], [aria-label]').forEach(el => {
+                    const titleKey = el.getAttribute('data-lfms-original-title') || el.getAttribute('title');
+                    const ariaKey = el.getAttribute('data-lfms-original-aria') || el.getAttribute('aria-label');
+                    if (titleKey && !el.hasAttribute('data-lfms-original-title')) el.setAttribute('data-lfms-original-title', titleKey);
+                    if (ariaKey && !el.hasAttribute('data-lfms-original-aria')) el.setAttribute('data-lfms-original-aria', ariaKey);
+                    if (titleKey && extraTranslations[titleKey] && language === 'bn') el.setAttribute('title', extraTranslations[titleKey]);
+                    else if (titleKey && language === 'en') el.setAttribute('title', titleKey);
+                    if (ariaKey && extraTranslations[ariaKey] && language === 'bn') el.setAttribute('aria-label', extraTranslations[ariaKey]);
+                    else if (ariaKey && language === 'en') el.setAttribute('aria-label', ariaKey);
+                });
+                const pageTitle = document.title;
+                const separator = ' - ';
+                const titleBase = pageTitle.includes(separator) ? pageTitle.split(separator)[0] : pageTitle;
+                const translatedTitle = extraTranslations[titleBase] || translations[titleBase];
+                if (language === 'bn' && translatedTitle) document.title = translatedTitle + separator + 'লস্ট অ্যান্ড ফাউন্ড';
+                document.documentElement.lang = language === 'bn' ? 'bn' : 'en';
+                const label = document.getElementById('languageLabel');
+                if (label) label.textContent = language === 'bn' ? 'English' : 'বাংলা';
+            }
+            function applyTheme(theme) {
+                const root = document.documentElement;
+                const isDark = theme === 'dark';
+                root.classList.toggle('dark-mode', isDark);
+                root.dataset.theme = isDark ? 'dark' : 'light';
+                localStorage.setItem('lfms-theme', isDark ? 'dark' : 'light');
+                const button = document.getElementById('themeToggle');
+                if (button) {
+                    button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+                    button.title = isDark ? 'Switch to Light mode' : 'Switch to Dark mode';
+                }
+            }
+
+            function applyLanguage(language) {
+                const normalized = language === 'bn' ? 'bn' : 'en';
+                localStorage.setItem('lfms-language', normalized);
+                translateText(normalized);
+                document.documentElement.lang = normalized;
+                document.documentElement.dataset.language = normalized;
+            }
+
+            const savedLanguage = localStorage.getItem('lfms-language') || 'en';
+            const savedTheme = localStorage.getItem('lfms-theme') || 'light';
+            applyTheme(savedTheme);
+            applyLanguage(savedLanguage);
+            initializeToastMessages();
+
+            const languageButton = document.getElementById('languageToggle');
+            if (languageButton) {
+                languageButton.addEventListener('click', function () {
+                    const current = localStorage.getItem('lfms-language') || 'en';
+                    const next = current === 'bn' ? 'en' : 'bn';
+                    localStorage.setItem('lfms-language', next);
+                    // Reload from the original server text so every page and every text node
+                    // gets translated consistently in both directions.
+                    window.location.reload();
+                });
+            }
+
+            function initializeToastMessages() {
+                const candidates = document.querySelectorAll('.success-message, .notice-success, .notice-error, .manage-alert.success, .manage-alert.error, .detail-flash');
+                if (!candidates.length) return;
+
+                let container = document.querySelector('.lfms-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'lfms-toast-container';
+                    container.setAttribute('aria-live', 'polite');
+                    container.setAttribute('aria-atomic', 'true');
+                    document.body.appendChild(container);
+                }
+
+                candidates.forEach(function (source) {
+                    if (source.dataset.toastInitialized === 'true') return;
+                    source.dataset.toastInitialized = 'true';
+
+                    const toast = document.createElement('div');
+                    const isError = source.classList.contains('error') || source.classList.contains('notice-error');
+                    toast.className = 'lfms-toast ' + (isError ? 'lfms-toast-error' : 'lfms-toast-success');
+
+                    const message = document.createElement('div');
+                    message.className = 'lfms-toast-message';
+                    message.textContent = source.textContent.trim();
+
+                    const close = document.createElement('button');
+                    close.type = 'button';
+                    close.className = 'lfms-toast-close';
+                    close.setAttribute('aria-label', 'Close notification');
+                    close.title = 'Close';
+                    close.textContent = '×';
+
+                    toast.appendChild(message);
+                    toast.appendChild(close);
+                    container.appendChild(toast);
+                    source.remove();
+
+                    requestAnimationFrame(function () { toast.classList.add('is-visible'); });
+
+                    let timer = window.setTimeout(function () { dismissToast(toast); }, 3000);
+                    close.addEventListener('click', function () {
+                        window.clearTimeout(timer);
+                        dismissToast(toast);
+                    });
+                });
+            }
+
+            function dismissToast(toast) {
+                if (!toast || toast.dataset.closing === 'true') return;
+                toast.dataset.closing = 'true';
+                toast.classList.remove('is-visible');
+                window.setTimeout(function () { toast.remove(); }, 220);
+            }
+
+            const themeButton = document.getElementById('themeToggle');
+            if (themeButton) {
+                themeButton.addEventListener('click', function () {
+                    const current = document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
+                    applyTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            }
+
+            // Password eye buttons work on all normal Razor MVC pages.
+            document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const wrap = button.closest('.password-input-wrap');
+                    const input = wrap ? wrap.querySelector('input') : null;
+                    if (!input) return;
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    button.setAttribute('aria-pressed', show ? 'true' : 'false');
+                    button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                    const eye = button.querySelector('[data-eye]');
+                    const eyeOff = button.querySelector('[data-eye-off]');
+                    if (eye) eye.style.display = show ? 'none' : 'block';
+                    if (eyeOff) eyeOff.style.display = show ? 'block' : 'none';
+                });
+            });
+        })();
+    </script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

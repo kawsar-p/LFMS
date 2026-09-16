@@ -1,0 +1,275 @@
+/* LFMS Home — reference layout inspired by the supplied second screenshot.
+   Functionality/content is untouched; this only refines presentation. */
+
+:root{
+  --lfms-bg:#fbfaf7;
+  --lfms-card:#fff;
+  --lfms-hero:#fff0b8;
+  --lfms-hero-warm:#ffcf91;
+  --lfms-accent:#e36f43;
+  --lfms-ink:#171715;
+  --lfms-muted:#6e6a63;
+  --lfms-line:#e7e1d8;
+}
+
+body{background:var(--lfms-bg)!important;color:var(--lfms-ink)!important}
+
+/* Header becomes the clean rounded white card seen in reference #2. */
+.site-header{
+  position:sticky!important; top:10px!important; z-index:50!important;
+  width:calc(100% - 28px)!important; margin:10px auto 0!important;
+  border:1px solid #ece9e3!important; border-radius:14px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 5px 20px rgba(30,25,20,.06)!important;
+}
+
+/* Main hero: one rounded panel, text left + illustration right. */
+.lfms-home-hero{
+  width:calc(100% - 52px)!important;
+  max-width:1320px!important;
+  min-height:0!important;
+  height:560px!important;
+  margin:32px auto 0!important;
+  padding:64px 46px 48px!important;
+  border:1px solid #eadfce!important;
+  border-radius:16px!important;
+  overflow:hidden!important;
+  display:block!important;
+  isolation:isolate!important;
+  background:var(--lfms-hero)!important;
+  box-shadow:0 4px 18px rgba(50,35,20,.04)!important;
+}
+
+.lfms-home-hero::after{display:none!important}
+
+.lfms-home-hero .lfms-hero-content{
+  position:relative!important; z-index:3!important;
+  width:52%!important; max-width:650px!important;
+  padding-top:70px!important;
+}
+
+.lfms-home-hero .lfms-kicker{
+  margin-bottom:18px!important;
+  font-size:12px!important;
+  letter-spacing:.19em!important;
+}
+
+.lfms-home-hero h1{
+  max-width:650px!important;
+  margin:0!important;
+  font-size:clamp(42px,4.1vw,64px)!important;
+  line-height:1.03!important;
+  letter-spacing:-.055em!important;
+}
+
+.lfms-home-hero p{
+  margin:26px 0 0!important;
+  font-size:18px!important;
+  color:#67635c!important;
+}
+
+.lfms-hero-illustration{
+  position:absolute!important;
+  z-index:2!important;
+  right:-18px!important;
+  bottom:-28px!important;
+  width:56%!important;
+  height:100%!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:flex-end!important;
+  pointer-events:none!important;
+}
+
+.lfms-hero-illustration img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:right bottom!important;
+  display:block!important;
+}
+
+.lfms-home-hero .lfms-create-btn{
+  position:absolute!important;
+  z-index:5!important;
+  left:46px!important;
+  right:auto!important;
+  bottom:48px!important;
+  min-width:270px!important;
+  height:68px!important;
+  border:0!important;
+  border-radius:9px!important;
+  background:#e54629!important;
+  font-size:19px!important;
+  box-shadow:0 9px 22px rgba(229,70,41,.16)!important;
+}
+.lfms-home-hero .lfms-create-btn span{display:none!important}
+
+/* Search panel matches the rounded reference treatment. */
+.lfms-search-section{
+  width:calc(100% - 52px)!important;
+  max-width:1320px!important;
+  margin:28px auto 0!important;
+  padding:18px!important;
+  border:1px solid #ece8e1!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 5px 18px rgba(30,25,20,.045)!important;
+}
+.lfms-search-row{max-width:none!important;margin:0!important;gap:12px!important}
+.lfms-category-btn,.lfms-search-submit{height:60px!important;border-radius:9px!important}
+.lfms-category-btn{min-width:196px!important;background:#fff!important;border:1px solid #ddd8d0!important;font-size:15px!important}
+.lfms-main-search{gap:12px!important}
+.lfms-search-input input{height:60px!important;border-radius:9px!important;border:1px solid #ddd8d0!important;font-size:15px!important;padding-left:18px!important}
+.lfms-search-submit{min-width:148px!important;background:var(--lfms-accent)!important;border-color:var(--lfms-accent)!important;font-size:15px!important}
+
+.lfms-category-panel{max-width:none!important;border-radius:10px!important}
+
+/* Feed follows the reference's spacious, white-card rhythm. */
+.lfms-feed{
+  width:calc(100% - 92px)!important;
+  max-width:1230px!important;
+  margin:42px auto 80px!important;
+}
+.lfms-feed-heading{margin-bottom:20px!important}
+.lfms-feed-heading h2{font-size:28px!important;letter-spacing:-.035em!important}
+
+@media (max-width:1023px){
+  .site-header{width:calc(100% - 16px)!important;margin-top:8px!important;top:8px!important;border-radius:12px!important}
+
+  /* Mobile deliberately has NO image/banner artwork. */
+  .lfms-home-hero{
+    width:calc(100% - 24px)!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:18px auto 0!important;
+    padding:42px 24px 30px!important;
+    border-radius:14px!important;
+    background:var(--lfms-hero)!important;
+  }
+  .lfms-hero-illustration{display:none!important}
+  .lfms-home-hero .lfms-hero-content{width:100%!important;max-width:none!important;padding-top:0!important}
+  .lfms-home-hero h1{font-size:clamp(36px,9vw,50px)!important;line-height:1.04!important}
+  .lfms-home-hero p{font-size:16px!important;margin-top:20px!important}
+  .lfms-home-hero .lfms-create-btn{
+    position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;
+    margin-top:28px!important;width:100%!important;min-width:0!important;height:56px!important
+  }
+
+  .lfms-search-section{width:calc(100% - 24px)!important;margin-top:16px!important;padding:12px!important;border-radius:12px!important}
+  .lfms-search-row{display:block!important}
+  .lfms-category-btn{width:100%!important;margin-bottom:10px!important}
+  .lfms-main-search{display:block!important}
+  .lfms-search-input input{height:52px!important}
+  .lfms-search-submit{width:100%!important;height:52px!important;margin-top:10px!important}
+  .lfms-feed{width:calc(100% - 32px)!important;margin-top:32px!important}
+}
+
+/* Navbar: preserve the original full-width LFMS header. */
+.site-header{
+  width:100%!important;
+  margin:0!important;
+  top:0!important;
+  border-radius:0!important;
+}
+.site-header .navbar{
+  width:100%!important;
+  border-radius:0!important;
+}
+
+@media(max-width:1023px){
+  .site-header{
+    width:100%!important;
+    margin:0!important;
+    top:0!important;
+    border-radius:0!important;
+  }
+}
+
+/* Final hero alignment: illustration and banner share the exact same base color. */
+.lfms-home-hero{
+  background:rgb(254,237,175)!important;
+}
+.lfms-hero-illustration{
+  right:-18px!important;
+  bottom:-28px!important;
+  width:56%!important;
+  height:100%!important;
+  z-index:2!important;
+}
+.lfms-hero-illustration img{
+  object-fit:contain!important;
+  object-position:right bottom!important;
+}
+
+}
+
+
+/* ================= FINAL PC HERO LAYOUT =================
+   PC/Desktop is the intended layout. No mobile hero redesign. */
+@media (min-width: 1024px){
+  .lfms-home-hero{
+    height:520px!important;
+    min-height:520px!important;
+    padding:42px 46px 36px!important;
+    position:relative!important;
+  }
+
+  .lfms-home-hero .lfms-hero-content{
+    width:52%!important;
+    max-width:650px!important;
+    height:100%!important;
+    padding-top:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+  }
+
+  .lfms-home-hero .lfms-kicker{
+    margin-bottom:18px!important;
+  }
+
+  .lfms-home-hero h1{
+    margin:0!important;
+  }
+
+  .lfms-home-hero p{
+    margin:24px 0 0!important;
+  }
+
+  .lfms-home-hero .lfms-create-btn{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    align-self:flex-start!important;
+    min-width:270px!important;
+    width:auto!important;
+    height:62px!important;
+    margin:28px 0 0!important;
+    z-index:5!important;
+  }
+
+  .lfms-hero-illustration{
+    position:absolute!important;
+    right:-18px!important;
+    bottom:-28px!important;
+    width:56%!important;
+    height:100%!important;
+  }
+}
+
+/* Keep the original full-width navbar; do not redesign it. */
+.site-header,
+.site-header .navbar{
+  width:100%!important;
+  margin:0!important;
+  top:0!important;
+  border-radius:0!important;
+}

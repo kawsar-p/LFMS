@@ -1,0 +1,12 @@
+<div class="login-partial">
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <a class="login-link" asp-controller="Profile" asp-action="Index">Profile</a>
+    <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-button">Logout</button></form>
+}
+else
+{
+    <a class="login-link" asp-controller="Account" asp-action="Login">Login</a>
+    <a class="register-button" asp-controller="Account" asp-action="Register">Register</a>
+}
+</div>

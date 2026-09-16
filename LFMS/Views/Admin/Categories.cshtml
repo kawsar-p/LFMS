@@ -1,0 +1,63 @@
+@model List<Category>
+@{ ViewData["Title"] = "Manage Categories"; }
+
+<div class="manage-page">
+    <div class="manage-hero">
+        <div>
+            <p class="eyebrow">ADMIN / CATEGORIES</p>
+            <h1>Manage Categories</h1>
+            <p class="manage-description">Create and maintain the categories used for Lost & Found posts.</p>
+        </div>
+        <a class="manage-back" asp-action="Dashboard">Dashboard</a>
+    </div>
+
+    <div class="category-create-card">
+        <form asp-action="AddCategory" method="post">
+            @Html.AntiForgeryToken()
+            <label for="categoryName">New category</label>
+            <div class="category-create-row">
+                <input id="categoryName" name="name" required maxlength="60" placeholder="e.g. ID Card, Phone, Wallet" />
+                <button class="manage-add-button" type="submit">Add category</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="manage-toolbar">
+        <div class="manage-search-wrap">
+            <input id="adminCategoriesSearch" class="manage-search-input" type="search"
+                   placeholder="Search categories..." autocomplete="off" />
+            <button type="button" class="manage-search-clear" aria-label="Clear search"
+                    onclick="clearManageSearch('adminCategoriesSearch')">×</button>
+        </div>
+        <span id="adminCategoriesSearchCount" class="manage-search-count"></span>
+    </div>
+
+    <div class="category-grid">
+        @foreach (var c in Model)
+        {
+            <article class="category-card admin-search-item" data-search="@c.Name">
+                <div>
+                    <span class="category-index">CATEGORY</span>
+                    <h2>@c.Name</h2>
+                </div>
+                <form asp-action="DeleteCategory" method="post"
+                      onsubmit="return confirm('Delete this category?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@c.Id" />
+                    <button class="category-delete" type="submit">Delete</button>
+                </form>
+            </article>
+        }
+    </div>
+</div>
+
+<script>
+(function () {
+    const input=document.getElementById('adminCategoriesSearch'); if(!input)return;
+    const items=[...document.querySelectorAll('.category-grid .admin-search-item')];
+    const count=document.getElementById('adminCategoriesSearchCount');
+    function filter(){const q=input.value.trim().toLowerCase();let n=0;items.forEach(x=>{const show=!q||(x.dataset.search||'').toLowerCase().includes(q);x.classList.toggle('search-hidden',!show);if(show)n++;});count.textContent=q?`${n} of ${items.length}`:`${items.length} categories`;}
+    input.addEventListener('input',filter);filter();
+})();
+function clearManageSearch(id){const x=document.getElementById(id);if(!x)return;x.value='';x.dispatchEvent(new Event('input'));x.focus();}
+</script>

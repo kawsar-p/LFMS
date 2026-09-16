@@ -1,0 +1,150 @@
+@model List<Post>
+@{
+    ViewData["Title"] = "Manage Posts";
+    var categories = Model.Select(p => p.Category?.Name).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
+    var statuses = Model.Select(p => p.Status).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
+}
+
+<div class="manage-page">
+    <div class="manage-hero">
+        <div>
+            <p class="eyebrow">ADMIN / POSTS</p>
+            <h1>Manage Posts</h1>
+            <p class="manage-description">Review listings, update their status and remove posts when necessary.</p>
+        </div>
+        <a class="manage-back" asp-action="Dashboard">Dashboard</a>
+    </div>
+
+    <div class="manage-toolbar manage-filter-toolbar">
+        <div class="manage-search-wrap">
+            <input id="adminPostsSearch" class="manage-search-input" type="search"
+                   placeholder="Search by ID, title, user, type, category or status..." autocomplete="off" />
+            <button type="button" class="manage-search-clear" aria-label="Clear search"
+                    onclick="clearManageSearch('adminPostsSearch')">×</button>
+        </div>
+        <select id="adminPostsStatus" class="manage-filter-select" aria-label="Filter by status">
+            <option value="" data-i18n="All statuses">All statuses</option>
+            @foreach (var status in statuses)
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+        <select id="adminPostsType" class="manage-filter-select" aria-label="Filter by post type">
+            <option value="" data-i18n="All types">All types</option>
+            <option value="Lost" data-i18n="Lost">Lost</option>
+            <option value="Found" data-i18n="Found">Found</option>
+        </select>
+        <select id="adminPostsCategory" class="manage-filter-select" aria-label="Filter by category">
+            <option value="" data-i18n="All categories">All categories</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category">@category</option>
+            }
+        </select>
+        <button type="button" class="manage-filter-reset" id="adminPostsReset" data-i18n="Clear filters">Clear filters</button>
+        <span id="adminPostsSearchCount" class="manage-search-count"></span>
+    </div>
+
+    <div class="manage-list">
+        @foreach (var p in Model)
+        {
+            <article class="manage-card admin-search-item"
+                     data-search="@($"{p.Title} {p.User?.FullName} {p.PostType} {p.Category?.Name} {p.ReferenceCode} {p.Status}")"
+                     data-status="@p.Status"
+                     data-type="@p.PostType"
+                     data-category="@p.Category?.Name">
+                <div class="post-manage-main">
+                    <div class="post-manage-label">
+                        <span class="type-label">@p.PostType</span>
+                        <span class="status-badge @(p.Status == "Collected" ? "status-collected" : "status-available")">@p.Status</span>
+                    </div>
+                    <h2>@p.Title</h2>
+                    <div class="post-manage-meta">
+                        <span>@p.User?.FullName</span>
+                        <span>@p.Category?.Name</span>
+                        <span>ID: @p.ReferenceCode</span>
+                    </div>
+                </div>
+
+                <div class="manage-actions">
+                    <a class="manage-action primary" asp-controller="Posts" asp-action="Details" asp-route-id="@p.Id">View</a>
+                    <form asp-controller="Posts" asp-action="ChangeStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@p.Id" />
+                        <input type="hidden" name="status" value="@(p.Status == "Collected" ? "Available" : "Collected")" />
+                        <button class="manage-action" type="submit">
+                            @(p.Status == "Collected" ? "Mark Available" : "Mark Collected")
+                        </button>
+                    </form>
+                    <form asp-action="DeletePost" method="post"
+                          onsubmit="return confirm('Remove this post permanently?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@p.Id" />
+                        <button class="manage-action danger" type="submit">Remove</button>
+                    </form>
+                </div>
+            </article>
+        }
+    </div>
+</div>
+
+<script>
+(function () {
+    const input = document.getElementById('adminPostsSearch');
+    if (!input) return;
+    const items = [...document.querySelectorAll('.manage-list .admin-search-item')];
+    const status = document.getElementById('adminPostsStatus');
+    const type = document.getElementById('adminPostsType');
+    const category = document.getElementById('adminPostsCategory');
+    const reset = document.getElementById('adminPostsReset');
+    const count = document.getElementById('adminPostsSearchCount');
+
+    function matches(value, selected) {
+        return !selected || (value || '').toLowerCase() === selected.toLowerCase();
+    }
+
+    function filter() {
+        const q = input.value.trim().toLowerCase();
+        const selectedStatus = status.value;
+        const selectedType = type.value;
+        const selectedCategory = category.value;
+        let visible = 0;
+
+        items.forEach(item => {
+            const searchMatch = !q || (item.dataset.search || '').toLowerCase().includes(q);
+            const statusMatch = matches(item.dataset.status, selectedStatus);
+            const typeMatch = matches(item.dataset.type, selectedType);
+            const categoryMatch = matches(item.dataset.category, selectedCategory);
+            const show = searchMatch && statusMatch && typeMatch && categoryMatch;
+            item.classList.toggle('search-hidden', !show);
+            if (show) visible++;
+        });
+
+        const activeFilters = q || selectedStatus || selectedType || selectedCategory;
+        count.textContent = activeFilters ? `${visible} of ${items.length}` : `${items.length} posts`;
+    }
+
+    [input, status, type, category].forEach(el => {
+        el.addEventListener(el === input ? 'input' : 'change', filter);
+    });
+
+    reset.addEventListener('click', function () {
+        input.value = '';
+        status.value = '';
+        type.value = '';
+        category.value = '';
+        filter();
+        input.focus();
+    });
+
+    filter();
+})();
+
+function clearManageSearch(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+}
+</script>

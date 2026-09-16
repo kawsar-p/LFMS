@@ -1,0 +1,190 @@
+@model LFMS.ViewModels.AdminUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">ADMIN / USER</p>
+        <h1>Edit User</h1>
+        <p class="muted">Administrator has full control over this account.</p>
+    </div>
+    <a class="back-link" asp-action="Users">Back to users</a>
+</div>
+
+<div class="admin-user-edit-grid">
+    <section class="settings-card">
+        <form asp-action="EditUser" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+            <div class="admin-profile-image-editor">
+                <div class="admin-profile-preview" id="adminProfilePreview">
+                    <img src="@(string.IsNullOrWhiteSpace(Model.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : Model.ProfileImagePath)" alt="Profile preview" id="adminProfilePreviewImage" />
+                </div>
+                <div class="admin-profile-upload-copy">
+                    <label for="ProfileImage">Profile photo</label>
+                    <input asp-for="ProfileImage" id="ProfileImage" type="file" accept=".jpg,.jpeg,.png,.webp" />
+                    <p class="muted small">Choose a new image to replace the current photo. JPG, PNG or WEBP, up to 5 MB.</p>
+                    <span asp-validation-for="ProfileImage" class="field-error"></span>
+                </div>
+            </div>
+
+
+            <div class="admin-edit-section">
+                <p class="settings-group-title">Basic information</p>
+
+                <div class="two-columns field-grid">
+                    <div class="field">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" />
+                        <span asp-validation-for="FullName" class="field-error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" />
+                    <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="admin-edit-section">
+                <p class="settings-group-title">Account control</p>
+
+                <div class="admin-toggle-row">
+                    <div>
+                        <strong>Account status</strong>
+                        <p class="muted small">Inactive users cannot log in.</p>
+                    </div>
+                    <label class="switch">
+                        <input asp-for="IsActive" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="admin-select-field">
+                    <label asp-for="Role">User role</label>
+                    <select asp-for="Role">
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <span asp-validation-for="Role" class="field-error"></span>
+                </div>
+
+                <div class="admin-check-grid">
+                    <label class="admin-check">
+                        <input asp-for="EmailConfirmed" />
+                        <span>Email confirmed</span>
+                    </label>
+                    <label class="admin-check">
+                        <input asp-for="PhoneNumberConfirmed" />
+                        <span>Phone confirmed</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="admin-edit-section">
+                <p class="settings-group-title">Reset password</p>
+                <p class="muted small">Leave empty to keep the current password.</p>
+
+                <div class="two-columns field-grid">
+                    <div class="field">
+                        <label asp-for="NewPassword"></label>
+                        <div class="password-input-wrap">
+<input asp-for="NewPassword" autocomplete="new-password" data-password-input />
+<button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false">
+    <svg data-eye viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+    <svg data-eye-off viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="m3 3 18 18"/><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.7M6.1 6.8C3.7 8.6 2.5 12 2.5 12S6 18 12 18c1.2 0 2.3-.2 3.3-.6"/><path d="M9.9 9.9a2.5 2.5 0 0 0 3.5 3.5"/></svg>
+</button>
+</div>
+                        <div class="password-requirements" data-password-requirements>
+                            <div class="password-requirement" data-rule="length"><span>○</span> At least 6 characters</div>
+                            <div class="password-requirement" data-rule="digit"><span>○</span> At least 1 number (0-9)</div>
+                        </div>
+                        <span asp-validation-for="NewPassword" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="ConfirmPassword"></label>
+                        <div class="password-input-wrap">
+<input asp-for="ConfirmPassword" autocomplete="new-password" />
+<button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false">
+    <svg data-eye viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+    <svg data-eye-off viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="m3 3 18 18"/><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.7M6.1 6.8C3.7 8.6 2.5 12 2.5 12S6 18 12 18c1.2 0 2.3-.2 3.3-.6"/><path d="M9.9 9.9a2.5 2.5 0 0 0 3.5 3.5"/></svg>
+</button>
+</div>
+                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-edit-footer">
+                <a class="back-link" asp-action="Users">Cancel</a>
+                <button class="btn btn-accent" type="submit">Save user changes</button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="profile-side-card">
+        <p class="eyebrow">ADMIN CONTROL</p>
+        <h3>Full user access</h3>
+        <p class="muted small">You can change the user's personal information, role, verification state, password and account status.</p>
+
+        @if (Model.Id != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+        {
+            <div class="danger-zone">
+                <h3>Permanent deletion</h3>
+                <p class="muted small">Deleting this user also removes their posts, images, comments, likes and notifications.</p>
+                <form asp-action="DeleteUser" method="post"
+                      onsubmit="return confirm('Permanently delete this user and all related data? This cannot be undone.');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button class="danger-button" type="submit">Delete this user</button>
+                </form>
+            </div>
+        }
+    </aside>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    (function () {
+        const input = document.getElementById('ProfileImage');
+        const preview = document.getElementById('adminProfilePreview');
+        if (!input || !preview) return;
+
+        input.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return;
+
+            const url = URL.createObjectURL(file);
+            preview.innerHTML = '<img src="' + url + '" alt="Profile preview" />';
+        });
+    })();
+    </script>
+    <script>
+    (function(){
+      const input=document.querySelector('[data-password-input]');
+      if(!input)return;
+      const rules={length:v=>v.length>=6,digit:v=>/[0-9]/.test(v)};
+      function update(){
+        document.querySelectorAll('[data-password-requirements] [data-rule]').forEach(el=>{
+          const ok=!!rules[el.dataset.rule]?.(input.value);
+          el.classList.toggle('valid',ok);
+          const icon=el.querySelector('span'); if(icon) icon.textContent=ok?'✓':'○';
+        });
+      }
+      input.addEventListener('input',update); update();
+    })();
+    </script>
+}

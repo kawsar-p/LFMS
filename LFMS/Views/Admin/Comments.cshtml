@@ -1,0 +1,65 @@
+@model List<Comment>
+@{ ViewData["Title"] = "Manage Comments"; }
+
+<div class="manage-page">
+    <div class="manage-hero">
+        <div>
+            <p class="eyebrow">ADMIN / COMMENTS</p>
+            <h1>Manage Comments</h1>
+            <p class="manage-description">Keep the community discussion clean and remove unwanted comments quickly.</p>
+        </div>
+        <a class="manage-back" asp-action="Dashboard">Dashboard</a>
+    </div>
+
+    <div class="manage-toolbar">
+        <div class="manage-search-wrap">
+            <input id="adminCommentsSearch" class="manage-search-input" type="search"
+                   placeholder="Search by user, comment or post..." autocomplete="off" />
+            <button type="button" class="manage-search-clear" aria-label="Clear search"
+                    onclick="clearManageSearch('adminCommentsSearch')">×</button>
+        </div>
+        <span id="adminCommentsSearchCount" class="manage-search-count"></span>
+    </div>
+
+    <div class="manage-list">
+        @foreach (var c in Model)
+        {
+            <article class="manage-card admin-search-item"
+                     data-search="@($"{c.User?.FullName} {c.Content} {c.Post?.Title}")">
+                <div class="comment-manage-main">
+                    <div class="comment-user-line">
+                        <div class="manage-avatar small-avatar">
+                            <img src="@(string.IsNullOrWhiteSpace(c.User?.ProfileImagePath) ? Url.Content("~/images/default-avatar.svg") : c.User.ProfileImagePath)" alt="@c.User?.FullName" />
+                        </div>
+                        <div>
+                            <strong>@c.User?.FullName</strong>
+                            <span class="muted small">commented on <b>@c.Post?.Title</b></span>
+                        </div>
+                    </div>
+                    <div class="comment-preview">@c.Content</div>
+                </div>
+
+                <div class="manage-actions">
+                    <a class="manage-action primary" asp-controller="Posts" asp-action="Details" asp-route-id="@c.PostId">View post</a>
+                    <form asp-action="DeleteComment" method="post"
+                          onsubmit="return confirm('Remove this comment?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <button class="manage-action danger" type="submit">Remove</button>
+                    </form>
+                </div>
+            </article>
+        }
+    </div>
+</div>
+
+<script>
+(function () {
+    const input=document.getElementById('adminCommentsSearch'); if(!input)return;
+    const items=[...document.querySelectorAll('.manage-list .admin-search-item')];
+    const count=document.getElementById('adminCommentsSearchCount');
+    function filter(){const q=input.value.trim().toLowerCase();let n=0;items.forEach(x=>{const show=!q||(x.dataset.search||'').toLowerCase().includes(q);x.classList.toggle('search-hidden',!show);if(show)n++;});count.textContent=q?`${n} of ${items.length}`:`${items.length} comments`;}
+    input.addEventListener('input',filter);filter();
+})();
+function clearManageSearch(id){const x=document.getElementById(id);if(!x)return;x.value='';x.dispatchEvent(new Event('input'));x.focus();}
+</script>
